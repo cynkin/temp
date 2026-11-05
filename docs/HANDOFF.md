@@ -35,14 +35,16 @@ background.
 
 ## Next steps (in priority order)
 
-1. **Hospital final renders.** Run
+1. **Hospital final renders.** The hero is done and committed (docs/renders/hospital_corridor_hero.jpg). For the rest, run
    `.venv/bin/python -m envgen.cli render specs/hospital_corridor.yaml --quality final --blend --out output/ward_b_corridor/final`
    (3 shots: hero, gurney, reverse). Look at each. Copy curated JPGs to `docs/renders/` and commit them.
 2. **Overgrown service hall.** Run `render specs/overgrown_service_hall.yaml` (preview), look at hero and ferns,
    fix whatever breaks (pipe/stair placement, vegetation scale, roof-hole god rays), then
    `refine specs/overgrown_service_hall.yaml --shots hero` and do an agent critique with the `qa-review` skill.
-3. **Hospital polish** (from the last critique): add foreground floor interest near the camera; check the speckle
-   in the left-wall volume at final quality; push the far red emergency glow (refs 02/19) a little further.
+3. **Hospital polish** (from the final-render critique, docs/renders/hospital_corridor_hero.jpg, score 0.954):
+   the lower-left mint wainscot reads speckled. That is the *material* (high-frequency peel, `wainscot_paint.peel.scale`
+   2.2), not render noise: use larger, fewer chips. Also add foreground floor interest near the camera, and push the
+   far red emergency glow (refs 02/19) a little further.
 4. **Vision critic with a real API key** (`ANTHROPIC_API_KEY`): run `refine --critic anthropic` once and record
    the result in DEVLOG.
 5. **New layouts:** add `room` and `tunnel` builders (ribbed tunnel for refs 12/13, metro service level for 05/14).

@@ -10,6 +10,7 @@ An exporter writes GLB files plus a manifest for presentation in **Unreal Engine
 Environments included:
 - `specs/hospital_corridor.yaml`: the prototype, an abandoned hospital ward corridor built from refs 02/08/09/15/16/17/19.
 - `specs/overgrown_service_hall.yaml`: an overgrown industrial pump hall (refs 04/07/10/00) with an exposed broken roof slab, brick, pipe runs, a steel stair and gallery, ferns and moss.
+- `specs/sector_b_service_tunnel.yaml`: an underground service tunnel (refs 00/12/13/18/14) with limewashed brick, ribs, caged bulkhead lamps, a red emergency end, sagging cables, stencilled sector markings, and an abandoned sandbag checkpoint (toolbox, drums, extension cable).
 
 See `docs/reference_analysis.md` for how the references became construction requirements.
 

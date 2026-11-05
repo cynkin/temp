@@ -89,9 +89,9 @@ Fields: **Cat** = category/style · **Comp** = composition · **P/S/T** = primar
 | Cluster | Images | Use |
 |---|---|---|
 | **Hospital corridor** | 02, 08, 09, 15, 16, 17, 19 | Prototype environment (`specs/hospital_corridor.yaml`); target `references/targets/hospital_corridor.json` |
-| Underground facility / tunnel | 00, 06, 12, 13, 18 | `targets/corridor_horror.json` (together with the hospital set) |
+| **Underground facility / tunnel** | 00, 12, 13, 18 (+ 14, 06) | Third environment (`specs/sector_b_service_tunnel.yaml`); target `references/targets/underground_tunnel.json`. Also part of `corridor_horror.json` |
 | Soviet metro / service level | 05, 14 | Future spec: columns, railings, tungsten pools |
-| Overgrown factory | 04, 07, 10 | Future spec: moss/rust materials and god rays already supported |
+| Overgrown factory | 04, 07, 10 | Second environment (`specs/overgrown_service_hall.yaml`); target `references/targets/overgrown_industrial.json` |
 | Industrial exterior vignettes | 01, 03, 11 | Future spec: terrain plus prop-hero, low camera |
 
 ## Construction requirements extracted (hospital corridor prototype)
@@ -113,3 +113,54 @@ Fields: **Cat** = category/style · **Comp** = composition · **P/S/T** = primar
 | Wet glossy floor patches (02, 19) | `vinyl_tile_floor.wet` plus puddle water decals |
 | Camera 1.5–1.6 m, 18–21 mm, one-point perspective with VP near centre (09, 16, 17) | `camera.shots.hero` (19 mm), plus gurney and reverse coverage shots |
 | Low-key, slightly warm, desaturated grade with vignette and grain | `post` block, tuned by the QA loop against the measured target |
+
+## Construction requirements extracted (Sector B service tunnel)
+
+Cluster: 00, 12, 13, 18 for structure, light and mood; 14 and 05 for the sandbag position and the floor cable.
+Measured target (`references/targets/underground_tunnel.json`): mean luma about 0.17 (low key, much darker than the
+hospital set), RMS contrast about 0.12, warm bias (+0.07), weak haze (dark channel about 0.08): the darkness comes
+from **sparse, pooled practicals**, not from fog.
+
+### What the references share (the "rules" of the space)
+1. **No daylight at all.** Every photon comes from a fitting that is in frame or just out of it (00, 12, 13, 18).
+   The world/sky is therefore black, and the brightness of every area depends on how close it is to a surviving
+   lamp. The far end is *not* lit by fog; it is lit by a coloured emergency source (red in 13, 19).
+2. **Rhythm comes from the structure.** Ribs, pilasters and downstand beams repeat every 3 m (12's ribbed vault,
+   00's recesses). The lamps sit *between* ribs, so each bay is its own pool of light with dark bands between them.
+   This alternation is what gives these images depth.
+3. **Two-tone walls with a dark dado.** The lower 1.2 m is gloss paint (grey-green in 06/13) that takes the scuffs.
+   Above it is limewash or painted brick that flakes in patches (00), and the flaking shows grey mortar and brick,
+   never fresh colour.
+4. **Services on the walls, not hidden.** A steam main and condensate line on brackets (05, 13); cable bundles on
+   J-hooks sagging between them (18), with one span torn loose.
+5. **Wayfinding by stencil.** Sector letters and huge bay numbers are sprayed on the walls (12's "6", 18's
+   "Sector B"), and worn yellow hazard paint marks the floor edges and thresholds (12).
+6. **A story of an occupied, then abandoned, position** (14's sandbags, 18's red toolbox and fallen tube, 05's
+   extension cable). Objects cluster where people *did something*; the rest of the tunnel is empty.
+
+### Requirement → implementation
+| Requirement (source images) | Implementation |
+|---|---|
+| Tunnel 2.4–2.8 m wide, flat concrete slab about 3 m up, no suspended ceiling (00, 13) | `layout` 24 × 2.6 × 3.0 m, `ceiling.kind: exposed` with no collapse zones (no roof holes underground) |
+| Ribs and pilasters every bay (12, 00) | `pilasters` every 3 m, 0.14 m deep, plus the corridor builder's downstand beams on the same lines |
+| Limewashed brick with flakes that show grey (00) | `brick_painted` with the peel under-colour overridden to grey-brown (the first test render showed red under-brick, which read as fresh red brick and was oversaturated against the target) |
+| Dark gloss dado band, scuffed (06, 13) | New `tunnel_band` material (spec-defined): grey-green, low roughness, small low-contrast chips, heavy floor grime |
+| Caged bulkhead lamps in pools between ribs (00, 05, 14) | New `caged_lamp` practical: cast back box, frosted globe and a **modelled wire guard** that throws barred shadows. The globe is excluded from shadow rays so the bulb is not trapped. Mid-bay positions (y = 4.5, 10.5, 16.5, 19.5) |
+| Most lamps dead, colour temperature varies (00 cold, 12 sodium) | Per-lamp `state` and `kelvin`: 4800 K and 4400 K near the camera, one dead, one 2200 K sodium deeper in, one dead wall lamp |
+| Red emergency light at the sealed far end (13, 19) | Red caged wall lamp beside the end doors plus a red area light in the zone beyond, seen through the door portholes |
+| Fallen fluorescent tube glowing on the floor (18) | `fallen_tube` practical (6500 K) beyond the barricade: a cold counterpoint to the warm and red light |
+| Steam main and condensate on brackets (05, 13) | `structures: pipe_run` × 2 on the right wall (one drops to floor level and turns out) |
+| Cable bundle on hooks, one span torn (18) | New `cable_sag` structure: hooks on every rib face, 4 cables with individual sag; the span beside the barricade hangs loose |
+| Sector letters, bay numbers, hazard bands (12, 18) | New `stencils` beat: generated stencil lettering with bridges, overspray and wear (original artwork); worn yellow/black hazard bands along the right edge and across the threshold before the end doors |
+| Sandbag position, toolbox, drums, extension cable (14, 18, 05) | New `breach` beat. A two-row, three-course sandbag line from the left wall (always leaving a walkable gap) and one bag slid off the top. A red toolbox dropped open on the near side with spanners skittered out. Fuel drums against the wall behind the line, one knocked over. An extension cable snaking from a wall socket to the line (the work lamp it fed is gone). Papers blown toward the camera |
+| Rubble at the wall base from slow decay, not a collapse (00) | `breach.rubble_at`: small debris fields against alternating walls |
+| Low camera for the prop vignette (01, 11 style), one-point view for the hero (00) | `hero`: 1.6 m, 20 mm, VP slightly left of centre. `breach`: 0.75 m, 28 mm, f/2.8 on the toolbox |
+
+### Lessons from the first test renders
+- **The lamps sat inside the ceiling beams.** The corridor builder places a downstand beam (z 2.82–3.30 m) on every
+  bay line, and lamps placed on bay lines (y = 3, 9, 15, 21) were embedded in them, which made the breach area black.
+  The fix was to put the lamps mid-bay, which is also how real fittings are placed. *Rule: practical lights must be
+  placed relative to the structure, never on a structural grid line.*
+- 30–40 W bulbs are far too weak for Cycles point lights at a 2–3 m throw in a dark tunnel; 110–170 W gives the
+  pooled look.
+

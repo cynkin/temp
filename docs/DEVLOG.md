@@ -70,3 +70,11 @@ generated `stencil` and `hazard_band` decals; presets `drum_paint`, `hessian`, `
 | Breach area black under a lit lamp | Lamps on bay lines sat **inside the downstand beams** (z 2.82–3.30) | Lamps mid-bay; cable hooks on rib faces; pipes moved off the pilasters |
 | Sandbag line read as a few loose pillows | One row, two bags per course | Two-row stepped position, one object |
 | Validator interpenetration warning between sandbag rows | AABB check on two angled rows (false positive) | Rows built as one object |
+
+### Overgrown service hall: first preview (960×540)
+| Symptom | Root cause | Fix |
+|---|---|---|
+| Hall near-black, sun lit only the stair | Sun at azimuth 62°/elevation 52° put the roof-hole patch about 3 m away from the fern habitat | Sun 100°/72° so the shaft lands on the wet corner; sky 5→9; sun 6.5→9 |
+| Still too little light for a 14 × 4.2 × 4.6 m hall | One 1.3 m hole plus high clerestories | Hole radius 1.7 plus a second failure over the gallery; haze 0.04→0.05 |
+| Ferns shot showed only a drain pipe | Camera behind the pipe at 0.9 m | Camera moved left of the pipe, 1.15 m high, 26 mm |
+Open: the sun patch is squared off (the hole is made of whole slab panels) and blows out. Next: `refine --shots hero ferns`.

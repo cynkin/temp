@@ -40,7 +40,8 @@ architecture:
   ceiling:
     kind: exposed
     collapse_zones:                 # roof slab panels gone: light + rain enter here
-      - {y: 6.0, x: -0.4, radius: 1.3}
+      - {y: 6.0, x: -0.4, radius: 1.7}
+      - {y: 11.6, x: 0.5, radius: 1.0}     # second, smaller failure over the gallery
   services: {duct: false, pipes: 0, cable_tray: false}
   exterior_distance: 25.0
   exterior_floors: 1
@@ -71,8 +72,8 @@ structures:
 lighting:
   view_transform: AgX
   look: "AgX - Medium High Contrast"
-  world: {color: [0.12, 0.12, 0.11], sky_color: [0.86, 0.85, 0.80], horizon_color: [0.92, 0.9, 0.84], strength: 5.0}
-  sun: {azimuth: 62, elevation: 52, strength: 6.5, kelvin: 4700, angle: 0.5}
+  world: {color: [0.12, 0.12, 0.11], sky_color: [0.86, 0.85, 0.80], horizon_color: [0.92, 0.9, 0.84], strength: 9.0}
+  sun: {azimuth: 100, elevation: 72, strength: 9.0, kelvin: 4700, angle: 0.5}   # shaft lands just past the hole, on the fern corner
   fixtures: {default: "off"}
   practicals:
     - {kind: point, position: [1.9, 4.2, 2.6], kelvin: 2400, energy: 18.0, radius: 0.04}   # surviving caged lamp
@@ -81,7 +82,7 @@ lighting:
 
 atmosphere:
   enabled: true
-  density: 0.04
+  density: 0.05
   anisotropy: 0.65
   color: [0.95, 0.9, 0.8]
   noise_scale: 0.35
@@ -91,8 +92,8 @@ camera:
   shots:
     - {name: hero, position: [-1.3, 0.7, 1.65], target: [0.4, 10.0, 2.2], focal_mm: 20, fstop: 5.6,
        focus_distance: 6.5}
-    - {name: ferns, position: [0.9, 3.3, 0.9], target: [-0.5, 6.4, 0.3], focal_mm: 28, fstop: 2.8,
-       focus_distance: 3.2}
+    - {name: ferns, position: [0.25, 3.4, 1.15], target: [-0.7, 6.6, 0.25], focal_mm: 26, fstop: 2.8,
+       focus_distance: 3.3}
 
 story:
   beats:

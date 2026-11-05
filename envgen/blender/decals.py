@@ -129,6 +129,57 @@ def poster(kind: str, seed: int) -> Path:
     return p
 
 
+def stencil(text: str, seed: int = 0, color=(225, 222, 210), size=(1024, 512), bridges: bool = True) -> Path:
+    """Spray-stencilled lettering (sector letters, bay numbers) with stencil bridges, overspray and wear (RGBA)."""
+    safe = "".join(ch if ch.isalnum() else "_" for ch in text)
+    p = cache_dir() / f"stencil_{safe}_{seed}_{color[0]}_{color[1]}_{color[2]}.png"
+    if p.exists():
+        return p
+    rng = random.Random(seed)
+    w, h = size
+    alpha = Image.new("L", size, 0)
+    d = ImageDraw.Draw(alpha)
+    font = _font(int(h * (0.78 if len(text) <= 2 else 0.5)))
+    d.text((w / 2, h / 2), text, font=font, fill=255, anchor="mm")
+    if bridges:  # stencil bridges: thin horizontal gaps through every glyph
+        for frac in (0.47, 0.53):
+            d.rectangle((0, int(h * frac) - 3, w, int(h * frac) + 3), fill=0)
+    over = alpha.filter(ImageFilter.GaussianBlur(h / 60)).point(lambda v: int(v * 0.35))  # overspray halo
+    alpha = Image.composite(alpha, over, alpha)
+    wear = Image.new("L", size, 255)  # scuffed and flaked paint
+    wd = ImageDraw.Draw(wear)
+    for _ in range(260):
+        x, y, r = rng.randint(0, w), rng.randint(0, h), rng.randint(2, 14)
+        wd.ellipse((x - r, y - r, x + r, y + r), fill=rng.randint(0, 150))
+    wear = wear.filter(ImageFilter.GaussianBlur(2))
+    alpha = Image.composite(alpha, Image.new("L", size, 0), wear).point(lambda v: int(v * 0.9))
+    img = Image.new("RGBA", size, (*color, 0))
+    img.putalpha(alpha)
+    img.save(p)
+    return p
+
+
+def hazard_band(seed: int = 0, size=(1024, 128)) -> Path:
+    """Worn yellow/black diagonal hazard band for floor edges and door thresholds (RGBA)."""
+    p = cache_dir() / f"hazard_{seed}.png"
+    if p.exists():
+        return p
+    rng = random.Random(seed)
+    w, h = size
+    img = Image.new("RGBA", size, (200, 150, 20, 255))
+    d = ImageDraw.Draw(img)
+    for x0 in range(-h, w + h, h):
+        d.polygon([(x0, h), (x0 + h // 2, h), (x0 + h // 2 + h, 0), (x0 + h, 0)], fill=(18, 16, 14, 255))
+    wear = Image.new("L", size, 255)
+    wd = ImageDraw.Draw(wear)
+    for _ in range(420):  # boot and wheel wear
+        x, y, r = rng.randint(0, w), rng.randint(0, h), rng.randint(2, 18)
+        wd.ellipse((x - r * 2, y - r, x + r * 2, y + r), fill=rng.randint(0, 120))
+    img.putalpha(wear.filter(ImageFilter.GaussianBlur(1.5)))
+    img.save(p)
+    return p
+
+
 def document(seed: int, form: bool = True) -> Path:
     p = cache_dir() / f"doc_{seed}.png"
     if p.exists():

@@ -215,4 +215,23 @@ PRESETS: dict[str, dict] = {
         "base": {"color": (0.55, 0.06, 0.04), "roughness": 0.3, "coat": 0.4},
         "grime": {"amount": 0.4, "color": (0.12, 0.1, 0.08), "ao_distance": 0.05},
     },
+    "drum_paint": {  # blue-grey enamel steel drum, chipped to rust on the chimes and hoops
+        "base": {"color": (0.18, 0.26, 0.32), "roughness": 0.45, "color_var": 0.08},
+        "peel": {"amount": 0.35, "scale": 4.0, "under_color": (0.32, 0.16, 0.07)},
+        "rust": {"amount": 0.45, "scale": 4.0},
+        "grime": {"amount": 0.6, "color": (0.1, 0.08, 0.06), "ao_distance": 0.08, "floor_height": 0.3},
+        "streaks": {"amount": 0.5, "top": 0.9, "length": 0.6, "color": (0.35, 0.18, 0.08)},
+    },
+    "hessian": {  # jute sandbag cloth, damp and dusty
+        "base": {"color": (0.42, 0.35, 0.24), "roughness": 0.92, "color_var": 0.14, "sheen": 0.5,
+                 "hue_var_color": (0.3, 0.27, 0.2), "hue_var": 0.5},
+        "bump": {"strength": 0.35, "scale": 90.0},
+        "grime": {"amount": 0.6, "color": (0.12, 0.1, 0.08), "ao_distance": 0.06},
+    },
+    "hazard_yellow": {  # worn floor-marking paint
+        "projection": "xy", "per_object_variation": False,
+        "base": {"color": (0.72, 0.55, 0.08), "roughness": 0.6, "color_var": 0.12},
+        "peel": {"amount": 0.45, "scale": 6.0, "under_color": (0.3, 0.29, 0.27)},
+        "grime": {"amount": 0.6, "color": (0.1, 0.09, 0.07), "ao_distance": 0.05},
+    },
 }

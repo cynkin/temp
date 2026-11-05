@@ -161,3 +161,39 @@ def railing(coll, mats, name: str, points, height: float = 1.0, post_every: floa
     obj = mb.to_object(coll, mats)
     tag(obj, role="structure", kind="railing")
     return obj
+
+
+def cable_sag(coll, mats, name: str, hooks, count: int = 3, sag: float = 0.18, radius: float = 0.009,
+              rng: random.Random | None = None, broken_span: int = -1):
+    """Cable bundle hung between wall hooks: each span is a catenary-like droop; each cable sags differently.
+
+    ``broken_span`` drops one span's cables to hang free from the previous hook (cut or torn loose).
+    """
+    rng = rng or random.Random(0)
+    mb = MeshBuilder(name)
+    hooks = [Vector(h) for h in hooks]
+    for h in hooks:  # J-hooks screwed into the wall
+        mb.box(tuple(h + Vector((0, 0, 0.02))), (0.03, 0.03, 0.06), "fixture_housing")
+    for c in range(count):
+        dz = -0.018 * c
+        s_c = sag * rng.uniform(0.75, 1.35)
+        r = radius * rng.uniform(0.7, 1.3)
+        pts = []
+        for si, (a, b) in enumerate(zip(hooks[:-1], hooks[1:])):
+            if si == broken_span:
+                if pts:
+                    mb.tube_path(pts + [tuple(a + Vector((0, 0, dz)))], r, "cable_black", segments=6)
+                tail = [a + Vector((0.02 * c, 0.15 * k, dz - 0.35 * k * (1 + 0.3 * c))) for k in range(4)]
+                mb.tube_path([tuple(p) for p in tail], r, "cable_black", segments=6)
+                pts = []
+                continue
+            n = 8
+            for k in range(n + (1 if si == len(hooks) - 2 else 0)):
+                t = k / n
+                p = a.lerp(b, t) + Vector((0.006 * c, 0, dz - s_c * 4 * t * (1 - t)))
+                pts.append(tuple(p))
+        if len(pts) > 1:
+            mb.tube_path(pts, r, "cable_black", segments=6)
+    obj = mb.to_object(coll, mats)
+    tag(obj, role="cables", grounded=False)
+    return obj

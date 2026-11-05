@@ -54,6 +54,9 @@ def build_structures(spec: dict, mats: dict, root) -> list[str]:
                                     yaw_deg=float(st.get("yaw_deg", 0)))
         elif kind == "railing":
             industrial.railing(coll, mats, name, st["points"], float(st.get("height", 1.0)))
+        elif kind == "cable_sag":
+            industrial.cable_sag(coll, mats, name, st["hooks"], int(st.get("count", 3)), float(st.get("sag", 0.18)),
+                                 float(st.get("radius", 0.009)), rng, int(st.get("broken_span", -1)))
         elif kind == "terrain":
             nature.terrain(coll, mats, name, tuple(st["size"]), tuple(st.get("center", (0, 0))),
                            float(st.get("resolution", 0.25)), float(st.get("amplitude", 1.5)),

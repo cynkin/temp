@@ -11,6 +11,10 @@ A beat is a small causal story with spatial logic tied to the architecture:
     waiting_area  bench of linked seats against the wall between doors, one seat broken
     barricade     a stripped bed rammed against a closed ward door
     wall_dressing door plates, notice board with pinned documents, posters, extinguisher
+    breach        an underground checkpoint held and then abandoned: a low sandbag line from one wall,
+                  a work lamp's extension cable run to it, a toolbox dropped open beside it with spanners
+                  spilled, fuel drums stacked against the wall behind it, rubble at the wall base
+    stencils      sector letters and bay numbers sprayed on the walls, worn hazard bands at thresholds
 
 A footprint registry prevents interpenetration and keeps a walkable lane clear,
 because an un-walkable corridor reads as set dressing, not a real place.
@@ -19,7 +23,7 @@ from __future__ import annotations
 
 import math
 
-from .decals import document, door_plate, image_quad, poster
+from .decals import document, door_plate, hazard_band, image_quad, poster, stencil
 from .geometry import props as P
 from .geometry.architecture import ArchContext
 from .util import collection, seeded, tag
@@ -273,6 +277,95 @@ def _overgrowth(beat, ctx: ArchContext, mats, coll, fp: Footprints, rng) -> list
     return placed
 
 
+def _breach(beat, ctx: ArchContext, mats, coll, fp: Footprints, rng) -> list[str]:
+    placed = []
+    y = float(beat.get("y", ctx.length * 0.45))
+    side = beat.get("side", "left")
+    sx = -1 if side == "left" else 1
+    wall = sx * ctx.width / 2
+    reach = min(float(beat.get("reach", 0.55)), 0.62) * ctx.width  # always leave a walkable gap
+    courses = int(beat.get("courses", 3))
+    x0, x1 = wall - sx * 0.05, wall - sx * reach
+    # the line is angled slightly: built in a hurry, facing whatever came from beyond (+y)
+    P.sandbag_wall(coll, mats, "sandbag_line", (x0, y), (x1, y - 0.25), courses, rng, rows=int(beat.get("rows", 2)))
+    for k in range(int(reach / 0.4) + 1):
+        t = k / max(1, int(reach / 0.4))
+        fp.items.append((x0 + (x1 - x0) * t, y - 0.12 * t + 0.17, 0.42, f"sandbag_{k}"))
+    placed.append("sandbag_line")
+    # a fallen bag that slid off the top course
+    P.sandbag(coll, mats, (x1 - sx * 0.25, y + 0.75, 0.0), yaw_deg=rng.uniform(40, 80), rng=rng)
+    # toolbox dropped open on the defenders' side (towards the camera), spanners skittered out
+    tx, ty = fp.claim(x1 - sx * 0.05, y - 0.85, 0.3, "toolbox")
+    P.toolbox(coll, mats, (tx, ty, 0.0), yaw_deg=rng.uniform(-35, 35), rng=rng)
+    mb_name = "loose_spanners"
+    from .util import MeshBuilder
+    sp = MeshBuilder(mb_name)
+    for k in range(4):
+        a = rng.uniform(0, 6.28)
+        r = rng.uniform(0.25, 0.6)
+        px, py = tx + math.cos(a) * r, ty + math.sin(a) * r
+        if abs(px) > ctx.width / 2 - 0.05:
+            px = math.copysign(ctx.width / 2 - 0.08, px)
+        sp.box((px, py, 0.004), (0.2, 0.022, 0.008), "chrome_worn", rotation=(0, 0, rng.uniform(0, 6.28)))
+    tag(sp.to_object(coll, mats), role="debris", grounded=False)
+    placed += ["toolbox", mb_name]
+    # fuel drums behind the line, against the same wall; one knocked over and rolled toward the middle
+    dy = y + float(beat.get("drums_offset", 1.6))
+    for k in range(int(beat.get("drums", 2))):
+        xx, yy = fp.claim(wall - sx * 0.33, dy + k * 0.62, 0.31, f"drum_{k}")
+        P.oil_drum(coll, mats, (xx, yy, 0.0), yaw_deg=rng.uniform(0, 360), rng=rng)
+        placed.append(f"drum_{k}")
+    if beat.get("drum_toppled", True):
+        xx, yy = fp.claim(wall - sx * 0.95, dy + 0.5, 0.45, "drum_lying")
+        P.oil_drum(coll, mats, (xx, yy, 0.0), yaw_deg=rng.uniform(60, 120), rng=rng, lying=True)
+        placed.append("drum_lying")
+    # extension cable from a wall socket further back, snaking to the line (the work lamp is gone)
+    src = (wall - sx * 0.03, y - float(beat.get("cable_run", 3.5)))
+    mid = (wall - sx * 0.35, y - 1.6)
+    P.floor_cable(coll, mats, "extension_cable", [src, mid, (x0 - sx * 0.2, y - 0.2)], rng)
+    placed.append("extension_cable")
+    # rubble that has crumbled from the walls along the base (slow decay, not a collapse)
+    for k, yy in enumerate(beat.get("rubble_at", [])):
+        s2 = -1 if k % 2 else 1
+        P.debris_field(coll, mats, f"wall_rubble_{k}", (s2 * (ctx.width / 2 - 0.12), float(yy)), 0.35, 40, rng,
+                       ceiling_h=ctx.height)
+        placed.append(f"wall_rubble_{k}")
+    if beat.get("papers"):
+        P.papers(coll, mats, "breach_papers", (x1, y - 0.6), int(beat["papers"]), (0.2, -1.0), 2.5, rng)
+        placed.append("breach_papers")
+    return placed
+
+
+def _stencils(beat, ctx: ArchContext, mats, coll, fp: Footprints, rng) -> list[str]:
+    """Sprayed sector letters and bay numbers (wayfinding in a place with no windows), hazard bands."""
+    placed = []
+    for k, st in enumerate(beat.get("walls", [])):
+        sx = -1 if st.get("side", "right") == "left" else 1
+        h = float(st.get("size", 0.55))
+        text = str(st["text"])
+        aspect = 2.0 if len(text) > 2 else 1.0
+        color = tuple(st.get("color", (225, 222, 210)))
+        img = stencil(text, seed=31 + k, color=color, size=(1024, 512) if aspect > 1 else (512, 512))
+        image_quad(f"stencil_{k}", img, (sx * (ctx.width / 2 - 0.003 - 0.0005 * k), float(st["y"]),
+                                         float(st.get("z", 1.7))),
+                   (h * aspect, h), "-x" if sx > 0 else "+x", coll, roughness=0.6, alpha=True, grime=0.4,
+                   rotation_deg=rng.uniform(-1.5, 1.5))
+        placed.append(f"stencil_{k}")
+    for k, band in enumerate(beat.get("floor_bands", [])):
+        width = float(band.get("width", 0.12))
+        if band.get("across"):  # threshold band across the corridor at y
+            image_quad(f"hazard_{k}", hazard_band(70 + k), (0.0, float(band["y"]), 0.0012 + 0.0002 * k),
+                       (ctx.width - 0.02, width), "+z", coll, roughness=0.55, alpha=True, grime=0.6)
+        else:  # edge line along one wall from y0 to y1
+            sx = -1 if band.get("side", "left") == "left" else 1
+            y0, y1 = float(band["y0"]), float(band["y1"])
+            image_quad(f"hazard_{k}", hazard_band(70 + k), (sx * (ctx.width / 2 - 0.12), (y0 + y1) / 2,
+                                                            0.0012 + 0.0002 * k),
+                       (y1 - y0, width), "+z", coll, roughness=0.55, alpha=True, grime=0.6, rotation_deg=90)
+        placed.append(f"hazard_{k}")
+    return placed
+
+
 BEATS = {
     "overgrowth": _overgrowth,
     "collapse": _collapse,
@@ -281,6 +374,8 @@ BEATS = {
     "waiting_area": _waiting_area,
     "barricade": _barricade,
     "wall_dressing": _wall_dressing,
+    "breach": _breach,
+    "stencils": _stencils,
 }
 
 __all__ = ["build_story", "BEATS", "Footprints", "tag"]

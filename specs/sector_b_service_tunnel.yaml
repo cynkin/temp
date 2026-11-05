@@ -1,0 +1,139 @@
+# Sector B service tunnel: third environment (underground facility cluster).
+# Reference cluster: 00 (limewashed brick service tunnel, caged bulkhead lamps, rubble at the wall base),
+# 12 (ribbed vault, sodium light, worn yellow floor stripes, big sprayed bay number),
+# 13 (blast door with a red porthole, red emergency light, cable bundles),
+# 18 ("Sector B": sagging cables, a fallen fluorescent tube glowing on the floor, red toolbox, stencilled
+# sector letters), 14/05 (sandbags, extension cable snaking across the floor, tungsten pools).
+# See docs/reference_analysis.md, section "Construction requirements: Sector B service tunnel".
+name: sector_b_service_tunnel
+seed: 4471
+description: >
+  Service tunnel under a closed facility. Someone held this stretch for a while: a hurried sandbag line, a
+  work lamp fed from a wall socket, fuel drums. Then they left in a hurry, dropping the toolbox. Most bulkhead
+  lamps are dead; a fallen tube still glows on the floor; red emergency light leaks through the far door.
+references: ["00", "12", "13", "18", "14"]
+reference_target: references/targets/underground_tunnel.json
+
+layout:
+  type: corridor
+  length: 24.0
+  width: 2.6
+  height: 3.0
+  plenum: 0.05
+  bay: 3.0
+
+architecture:
+  wall_thickness: 0.35
+  materials: {wall: brick_painted, wainscot: tunnel_band, floor: concrete_floor, slab: concrete_slab}
+  wainscot: {height: 1.2}
+  pilasters: {every: 3.0, depth: 0.14, width: 0.4}   # structural ribs (ref 12 rhythm, ref 00 recesses)
+  doors:
+    list:
+      - {side: right, y: 7.5, width: 1.0, open: 0.3, label: "B-06"}
+      - {side: right, y: 19.5, width: 1.0, open: 0.0, label: "B-07"}
+  end: {kind: double_door, width: 1.7, height: 2.25, open: [0, 0]}   # sealed bulkhead doors, portholes
+  ceiling:
+    kind: exposed
+    collapse_zones: []                # underground: no roof holes
+  services: {duct: false, pipes: 0, cable_tray: false}
+
+materials:
+  tunnel_band:                        # dark grey-green gloss dado band (refs 06, 13), flaking
+    projection: wall
+    per_object_variation: false
+    base: {color: [0.2, 0.26, 0.24], roughness: 0.38, color_var: 0.08, hue_var_color: [0.28, 0.28, 0.22],
+           hue_var: 0.4}
+    peel: {amount: 0.2, scale: 2.2, under_color: [0.4, 0.4, 0.36], thickness: 2.5}
+    grime: {amount: 0.85, color: [0.08, 0.07, 0.05], ao_distance: 0.35, floor_height: 0.45}
+    streaks: {amount: 0.5, top: 1.2, length: 1.0}
+  brick_painted:                      # limewash over brick; flakes expose grey mortar/brick (ref 00)
+    base: {color: [0.7, 0.71, 0.67]}
+    peel: {amount: 0.24, scale: 1.3, under_color: [0.46, 0.43, 0.39]}
+    grime: {amount: 0.8}
+  concrete_floor: {base: {color: [0.4, 0.39, 0.37]}, wet: {amount: 0.25}}
+  door_paint:                         # steel service doors, battleship grey over red oxide primer
+    base: {color: [0.3, 0.33, 0.32], roughness: 0.4, color_var: 0.06}
+    peel: {amount: 0.3, scale: 3.0, under_color: [0.4, 0.15, 0.08]}
+    rust: {amount: 0.25, scale: 4.0}
+
+structures:
+  - {kind: pipe_run, name: steam_main, radius: 0.09, support: wall, support_every: 1.5,
+     points: [[1.02, -0.2, 2.62], [1.02, 24.2, 2.62]]}
+  - {kind: pipe_run, name: condensate, radius: 0.045, material: radiator, support: wall, support_every: 1.5,
+     points: [[1.08, -0.2, 2.35], [1.08, 17.4, 2.35], [1.08, 17.4, 0.15], [0.85, 17.4, 0.15]]}
+  - {kind: cable_sag, name: left_cables, count: 4, sag: 0.24, broken_span: 3,   # clipped to each rib face
+     hooks: [[-1.14, 0.05, 2.55], [-1.14, 3.0, 2.55], [-1.14, 6.0, 2.55], [-1.14, 9.0, 2.55], [-1.14, 12.0, 2.55],
+             [-1.14, 15.0, 2.55], [-1.14, 18.0, 2.55], [-1.14, 21.0, 2.55], [-1.14, 23.95, 2.55]]}
+
+lighting:
+  view_transform: AgX
+  look: "AgX - Medium High Contrast"
+  world: {color: [0.004, 0.005, 0.006], strength: 0.2}
+  sun: null
+  fixtures: {default: "off"}
+  practicals:
+    - {kind: caged_lamp, mount: ceiling, position: [0.0, 4.5, 2.84], kelvin: 4800, energy: 170.0}
+    - {kind: caged_lamp, mount: ceiling, position: [0.0, 10.5, 2.84], kelvin: 4400, energy: 150.0}
+    - {kind: caged_lamp, mount: ceiling, position: [0.0, 16.5, 2.84], state: "off"}
+    - {kind: caged_lamp, mount: ceiling, position: [0.0, 19.5, 2.84], kelvin: 2200, energy: 110.0}   # sodium (ref 12)
+    - {kind: caged_lamp, mount: left, position: [-1.18, 13.5, 2.1], state: "off"}
+    - {kind: caged_lamp, mount: right, position: [1.18, 23.2, 2.3], color: [1.0, 0.08, 0.05], energy: 45.0,
+       emission: 14.0}                                                                      # emergency (ref 13)
+    - {kind: fallen_tube, position: [0.35, 13.4, 0.02], yaw: 64, length: 1.2, kelvin: 6500, energy: 30.0,
+       emission: 6.0}                                                                       # ref 18
+    - {kind: area, position: [0.0, 25.6, 2.2], color: [1.0, 0.06, 0.04], energy: 260.0, size: [1.8, 1.8],
+       direction: [0, -1, -0.2]}                                                            # red zone beyond doors
+
+atmosphere:
+  enabled: true
+  density: 0.035
+  anisotropy: 0.6
+  color: [0.92, 0.9, 0.86]
+  noise_scale: 0.4
+  noise_amount: 0.55
+  dust_motes: 500
+
+camera:
+  shots:
+    - {name: hero, position: [0.4, 0.8, 1.6], target: [-0.15, 14.0, 1.45], focal_mm: 20, fstop: 5.6,
+       focus_distance: 8.0}
+    - {name: breach, position: [0.75, 6.6, 0.75], target: [-0.45, 9.6, 0.35], focal_mm: 28, fstop: 2.8,
+       focus_distance: 3.0}
+
+story:
+  beats:
+    - {kind: breach, y: 9.6, side: left, reach: 0.5, courses: 3, rows: 2, drums: 2, drums_offset: 1.7,
+       cable_run: 3.6, rubble_at: [4.6, 16.4, 19.2], papers: 10}
+    - kind: stencils
+      walls:
+        - {text: "B", side: right, y: 2.0, z: 1.75, size: 0.62}
+        - {text: "SECTOR B", side: left, y: 4.5, z: 1.95, size: 0.32}
+        - {text: "6", side: right, y: 13.5, z: 1.8, size: 0.55, color: [215, 170, 40]}
+        - {text: "7", side: right, y: 16.5, z: 1.8, size: 0.55, color: [215, 170, 40]}
+      floor_bands:
+        - {across: true, y: 22.9, width: 0.2}
+        - {side: right, y0: 0.4, y1: 22.6, width: 0.1}
+    - {kind: wall_dressing, extinguisher: {side: left, y: 2.6}}
+
+post:
+  contrast: 1.06
+  saturation: 0.9
+  lift: [0.004, 0.005, 0.006]
+  gain: [1.03, 1.0, 0.95]
+  shadow_tint: [0.0, 0.004, 0.007]
+  highlight_tint: [0.014, 0.007, -0.006]
+  bloom: {threshold: 0.7, intensity: 0.2, radius: 0.03}
+  vignette: 0.35
+  grain: 0.016
+  chromatic_aberration: 0.001
+
+render:
+  preview: {resolution: [960, 540], samples: 40}
+  final: {resolution: [1600, 900], samples: 96}
+  volume_step_rate: 3.0
+  adaptive_threshold: 0.035
+  clamp_indirect: 6.0
+
+qa:
+  max_iterations: 3
+  target_score: 0.85

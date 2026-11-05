@@ -191,6 +191,8 @@ def _build_practical(i: int, p: dict, ctx: ArchContext, mats: dict, coll, report
                       direction=(0, 0, 1), size=(float(p.get("length", 1.2)), 0.03), coll=coll)
         L.rotation_euler.z = yaw + math.pi / 2
         L.data.spread = math.radians(180)
+    elif kind == "caged_lamp":
+        _caged_lamp(i, p, pos, lin, energy, mats, coll)
     elif kind == "spot":
         add_light(f"spot_{i}", "SPOT", tuple(pos), energy, color=lin, direction=p.get("direction", (0, 0, -1)),
                   size=float(p.get("radius", 0.05)), spot_deg=float(p.get("angle", 50)), coll=coll)
@@ -200,6 +202,48 @@ def _build_practical(i: int, p: dict, ctx: ArchContext, mats: dict, coll, report
     else:
         add_light(f"point_{i}", "POINT", tuple(pos), energy, color=lin, size=float(p.get("radius", 0.05)), coll=coll)
     report["lights"].append({"name": f"practical_{i}", "kind": kind, "energy": energy})
+
+
+def _caged_lamp(i: int, p: dict, pos: Vector, lin, energy: float, mats: dict, coll) -> None:
+    """Industrial bulkhead: back plate, frosted globe, wire guard. ``mount`` = ceiling | left | right (wall).
+
+    The guard is real geometry, so the bulb throws the barred shadow pattern the underground refs show.
+    The globe is excluded from shadow rays so the bulb light (same centre) is not trapped inside it.
+    """
+    mount = p.get("mount", "ceiling")
+    on = p.get("state", "on") != "off"
+    normal = {"ceiling": Vector((0, 0, -1)), "left": Vector((1, 0, 0)), "right": Vector((-1, 0, 0))}[mount]
+    rot = {"ceiling": (math.pi, 0, 0), "left": (0, math.pi / 2, 0), "right": (0, -math.pi / 2, 0)}[mount]
+    drop = float(p.get("drop", 0.0)) if mount == "ceiling" else 0.0  # pendant conduit length
+    R, off = 0.075, 0.11  # globe radius, globe centre distance from the mount plate
+    globe_mat = make_emissive(f"lamp_globe_{i}", lin, float(p.get("emission", 9.0)) if on else 0.0,
+                              base_color=(0.85, 0.82, 0.72))
+    lm = MeshBuilder(f"caged_lamp_{i}")
+    lm.cylinder((0, 0, 0), (0, 0, 0.045), 0.1, "fixture_housing", segments=20)       # cast back box
+    lm.cylinder((0, 0, 0.045), (0, 0, 0.06), 0.085, "fixture_housing", segments=20)   # gasket ring
+    for z in (off - 0.02, off + 0.035):                                                 # guard hoops
+        rr = math.sqrt(max(R * R - (z - off) ** 2, 0.0)) + 0.012
+        lm.torus((0, 0, z), rr, 0.0035, "fixture_housing", axis=(0, 0, 1), major_seg=20, minor_seg=5)
+    Rg, Rz = R + 0.012, R * 1.15 + 0.012
+    for k in range(4):                                                                  # guard bars
+        a = k * math.pi / 2 + math.pi / 4
+        arc = [(math.cos(a) * Rg * math.cos(t), math.sin(a) * Rg * math.cos(t), off + Rz * math.sin(t))
+               for t in (-0.55, 0.0, 0.5, 0.95, 1.3, 1.5)]
+        lm.tube_path([(math.cos(a) * 0.08, math.sin(a) * 0.08, 0.05)] + arc, 0.0035, "fixture_housing", segments=5)
+    lm.sphere((0, 0, off + R * 1.15 + 0.012), 0.008, "fixture_housing", subdiv=1)              # guard cap
+    mount_pt = pos - normal * off
+    if drop > 0:  # conduit down from the slab
+        cb = MeshBuilder(f"caged_lamp_conduit_{i}")
+        cb.cylinder(tuple(mount_pt), tuple(mount_pt + Vector((0, 0, drop))), 0.012, "galvanized_duct")
+        tag(cb.to_object(coll, mats), role="fixture")
+    tag(lm.to_object(coll, mats, location=tuple(mount_pt), rotation=rot), role="practical", grounded=False)
+    gb = MeshBuilder(f"caged_lamp_globe_{i}")
+    gb.sphere((0, 0, 0), R, "globe", subdiv=3, scale=(1, 1, 1.15))
+    globe = gb.to_object(coll, dict(mats, globe=globe_mat), location=tuple(pos), rotation=rot)
+    globe.visible_shadow = False
+    tag(globe, role="practical", grounded=False)
+    if on:
+        add_light(f"caged_lamp_light_{i}", "POINT", tuple(pos), energy, color=lin, size=R * 0.6, coll=coll)
 
 
 def build_atmosphere(spec: dict, ctx: ArchContext, root) -> None:

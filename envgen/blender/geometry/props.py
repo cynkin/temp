@@ -426,3 +426,123 @@ def glass_shards(coll, mats, name: str, center, spread: float, count: int, rng: 
     obj = mb.to_object(coll, mats)
     tag(obj, role="debris", grounded=False)
     return obj
+
+
+# ============================================================================= industrial / underground
+
+@prop("tool.toolbox", (0.52, 0.24, 0.42), ("toolbox", "tools", "maintenance", "underground"))
+def toolbox(coll, mats, location, yaw_deg=0.0, rng=None, open_lid=True, **_) -> bpy.types.Object:
+    """Pressed-steel cantilever toolbox (red enamel), lid thrown open, a tray of spanners inside."""
+    rng = rng or random.Random(0)
+    mb = MeshBuilder("toolbox")
+    W, D, H = 0.5, 0.22, 0.2
+    mb.box((0, 0, H / 2), (W, D, H), "red_metal", bevel=0.006)
+    mb.box((0, 0, H + 0.002), (W - 0.02, D - 0.02, 0.006), "rubber_black")  # dark interior read from above
+    if open_lid:  # lid hinged on the back edge, swung past vertical against its stay
+        a = math.radians(110)
+        mb.box((0, D / 2 + math.sin(a - math.pi / 2) * 0.05 + 0.005, H + math.cos(a - math.pi / 2) * 0.05),
+               (W, 0.1, 0.012), "red_metal", bevel=0.004, rotation=(a, 0, 0))
+        for k in range(5):  # spanner handles poking out of the top tray
+            x = -0.18 + k * 0.08 + rng.uniform(-0.01, 0.01)
+            mb.box((x, rng.uniform(-0.04, 0.04), H + 0.03), (0.018, 0.006, 0.09), "chrome_worn",
+                   rotation=(rng.uniform(-0.4, 0.4), rng.uniform(-0.3, 0.3), 0))
+    else:
+        mb.box((0, 0, H + 0.03), (W, D, 0.06), "red_metal", bevel=0.006)
+    # carry handle on swivel lugs
+    mb.cylinder((-0.14, 0, H + 0.075), (0.14, 0, H + 0.075), 0.009, "rubber_black")
+    for s in (-1, 1):
+        mb.cylinder((s * 0.15, 0, H - 0.01), (s * 0.15, 0, H + 0.08), 0.006, "chrome_worn")
+        mb.box((s * (W / 2 + 0.004), 0, H * 0.75), (0.008, 0.05, 0.04), "chrome_worn")  # latch
+    return _finish(mb, coll, mats, location, yaw_deg, "toolbox")
+
+
+@prop("container.oil_drum", (0.6, 0.6, 0.88), ("drum", "barrel", "oil", "industrial"))
+def oil_drum(coll, mats, location, yaw_deg=0.0, rng=None, lying=False, dented=0.0, **_) -> bpy.types.Object:
+    """205 l steel drum: two rolling hoops, chimes, bung caps. ``lying`` rolls it onto its side."""
+    mb = MeshBuilder("oil_drum")
+    r, h = 0.286, 0.88
+    mb.cylinder((0, 0, 0.012), (0, 0, h - 0.012), r, "drum_paint", segments=32)
+    for z in (0.012, h - 0.012):  # chimes (rolled rims)
+        mb.torus((0, 0, z), r - 0.004, 0.012, "drum_paint", axis=(0, 0, 1), major_seg=32, minor_seg=6)
+    for z in (h / 3, 2 * h / 3):  # rolling hoops
+        mb.torus((0, 0, z), r + 0.002, 0.009, "drum_paint", axis=(0, 0, 1), major_seg=32, minor_seg=6)
+    mb.cylinder((0.17, 0, h - 0.012), (0.17, 0, h + 0.004), 0.03, "chrome_worn", segments=10)
+    mb.cylinder((-0.19, 0.05, h - 0.012), (-0.19, 0.05, h + 0.002), 0.016, "chrome_worn", segments=8)
+    if lying:
+        obj = _finish(mb, coll, mats, location, 0.0, "oil_drum", grounded=False,
+                      rotation=(0, math.pi / 2, math.radians(yaw_deg)))
+        obj.location.z = location[2] + r + 0.012
+        return obj
+    return _finish(mb, coll, mats, location, yaw_deg, "oil_drum")
+
+
+@prop("barrier.sandbag", (0.62, 0.36, 0.14), ("sandbag", "barricade", "military", "flood"))
+def sandbag(coll, mats, location, yaw_deg=0.0, rng=None, **_) -> bpy.types.Object:
+    rng = rng or random.Random(0)
+    mb = MeshBuilder("sandbag")
+    _sandbag(mb, (0, 0, 0), 0.0, rng)
+    return _finish(mb, coll, mats, location, yaw_deg, "sandbag")
+
+
+def _sandbag(mb: MeshBuilder, c, yaw: float, rng: random.Random, z0: float = 0.0) -> None:
+    """One filled hessian bag: a slumped pillow (top bulge, flat underside) with a tied, folded end."""
+    L, Wd, T = 0.6, 0.34, 0.13
+    ca, sa = math.cos(yaw), math.sin(yaw)
+
+    def disp(u, v, ph=rng.uniform(0, 6.28)):
+        fu, fv = 1 - (2 * u / L) ** 4, 1 - (2 * v / Wd) ** 2
+        return max(0.0, T * fu * fv) + 0.006 * math.sin(u * 23 + ph) * math.sin(v * 17)
+    mb.grid((c[0], c[1], z0 + 0.004), (L, Wd), "hessian", xs=10, ys=6, rotation=(0, 0, yaw), displace=disp)
+    mb.box((c[0], c[1], z0 + 0.014), (L * 0.94, Wd * 0.9, 0.028), "hessian", bevel=0.012, rotation=(0, 0, yaw))
+    ex, ey = c[0] + ca * (L / 2 + 0.03), c[1] + sa * (L / 2 + 0.03)
+    mb.box((ex, ey, z0 + 0.035), (0.07, 0.16, 0.05), "hessian", bevel=0.01, rotation=(0, 0, yaw))
+
+
+def sandbag_wall(coll, mats, name: str, start, end, courses: int, rng: random.Random, rows: int = 1,
+                 row_gap: float = 0.38) -> bpy.types.Object:
+    """Stretcher-bonded sandbag wall between two floor points; upper courses stagger by half a bag and slump.
+
+    ``rows`` > 1 adds rows behind the first (+normal side), each one course lower (a stepped, battered position).
+    """
+    mb = MeshBuilder(name)
+    dx, dy = end[0] - start[0], end[1] - start[1]
+    length = math.hypot(dx, dy)
+    yaw = math.atan2(dy, dx)
+    ux, uy = dx / length, dy / length
+    for row in range(rows):
+        sx, sy = start[0], start[1] + row_gap * row
+        _sandbag_courses(mb, sx, sy, ux, uy, length, yaw, max(1, courses - row), rng)
+    obj = mb.to_object(coll, mats)
+    tag(obj, role="prop", category="barrier.sandbag_wall", grounded=False)
+    return obj
+
+
+def _sandbag_courses(mb, sx, sy, ux, uy, length, yaw, courses, rng) -> None:
+    for c in range(courses):
+        n = max(1, int((length - (0.3 if c % 2 else 0.0)) / 0.6))
+        off = 0.3 if c % 2 else 0.0
+        inset = 0.04 * c  # battered wall: each course steps back a little
+        for k in range(n):
+            t = off + 0.3 + k * 0.6 + rng.uniform(-0.03, 0.03)
+            x, y = sx + ux * t - uy * inset, sy + uy * t + ux * inset
+            _sandbag(mb, (x, y), yaw + rng.uniform(-0.06, 0.06), rng, z0=c * 0.12)
+
+
+def floor_cable(coll, mats, name: str, points, rng: random.Random, radius: float = 0.008) -> bpy.types.Object:
+    """An extension cable snaking across the floor between waypoints (lies flat, never straight)."""
+    mb = MeshBuilder(name)
+    pts = []
+    for (x0, y0), (x1, y1) in zip(points[:-1], points[1:]):
+        seg = math.hypot(x1 - x0, y1 - y0)
+        n = max(3, int(seg / 0.25))
+        ph = rng.uniform(0, 6.28)
+        for k in range(n):
+            t = k / n
+            wob = 0.06 * math.sin(t * 9 + ph)
+            nx, ny = -(y1 - y0) / seg, (x1 - x0) / seg
+            pts.append((x0 + (x1 - x0) * t + nx * wob, y0 + (y1 - y0) * t + ny * wob, radius))
+    pts.append((points[-1][0], points[-1][1], radius))
+    mb.tube_path(pts, radius, "cable_black", segments=6)
+    obj = mb.to_object(coll, mats)
+    tag(obj, role="cables", grounded=False)
+    return obj

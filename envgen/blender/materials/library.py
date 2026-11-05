@@ -332,6 +332,10 @@ def make_surface(name: str, recipe: dict) -> bpy.types.Material:
     if base.get("transmission"):
         bsdf.inputs["Transmission Weight"].default_value = float(base["transmission"])
         bsdf.inputs["IOR"].default_value = float(base.get("ior", 1.45))
+    if base.get("subsurface"):  # thin organic matter (leaves, grass) transmits light
+        bsdf.inputs["Subsurface Weight"].default_value = float(base["subsurface"])
+        bsdf.inputs["Subsurface Radius"].default_value = (0.05, 0.08, 0.02)
+        bsdf.inputs["Subsurface Scale"].default_value = 0.01
     if base.get("sheen"):
         bsdf.inputs["Sheen Weight"].default_value = float(base["sheen"])
     if base.get("alpha") is not None:

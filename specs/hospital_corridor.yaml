@@ -55,7 +55,7 @@ architecture:
   exterior_floors: 2
 
 materials:
-  plaster_painted: {streaks: {amount: 0.55}, peel: {amount: 0.3}}
+  plaster_painted: {streaks: {amount: 0.55}, peel: {amount: 0.18}}   # localised flaking, not all-over mottling
   vinyl_tile_floor: {wet: {amount: 0.32}}
 
 lighting:
@@ -66,8 +66,8 @@ lighting:
     color: [0.10, 0.11, 0.12]        # ambient seen by bounces
     sky_color: [0.80, 0.83, 0.86]    # overcast sky seen through windows (blows out, as in refs 09/17)
     horizon_color: [0.88, 0.88, 0.86]
-    strength: 4.5
-  sun: {azimuth: -28, elevation: 27, strength: 6.0, kelvin: 5200, angle: 0.25}
+    strength: 7.0
+  sun: {azimuth: -28, elevation: 16, strength: 6.0, kelvin: 5200, angle: 0.25}   # low sun rakes blind stripes across the far wall
   fixtures:
     default: "off"                   # mains power long gone
     kelvin: 5200
@@ -94,7 +94,7 @@ atmosphere:
 camera:
   sensor_mm: 36
   shots:
-    - {name: hero, position: [0.62, 0.55, 1.6], target: [-0.1, 12.0, 1.32], focal_mm: 19, fstop: 5.6,
+    - {name: hero, position: [0.62, 0.55, 1.6], target: [-0.1, 12.0, 1.62], focal_mm: 19, fstop: 5.6,
        focus_distance: 7.0}
     - {name: gurney, position: [-0.85, 6.0, 1.15], target: [0.35, 10.0, 0.75], focal_mm: 28, fstop: 2.8,
        focus_distance: 3.6}
@@ -112,7 +112,7 @@ post:
   highlight_tint: [0.012, 0.006, -0.008]
   bloom: {threshold: 0.8, intensity: 0.14, radius: 0.025}
   vignette: 0.32
-  grain: 0.022
+  grain: 0.014
   chromatic_aberration: 0.0012
 
 story:
@@ -139,7 +139,7 @@ story:
 
 render:
   preview: {resolution: [960, 540], samples: 40}
-  final: {resolution: [1920, 1080], samples: 160}
+  final: {resolution: [1600, 900], samples: 96}      # 4-core CPU budget; raise on a GPU machine
   max_bounces: 6
   volume_step_rate: 3.0
   adaptive_threshold: 0.035

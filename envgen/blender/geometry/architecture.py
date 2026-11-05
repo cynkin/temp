@@ -45,6 +45,8 @@ class ArchContext:
     bulkheads: list[float] = field(default_factory=list)
     floor_objects: list[str] = field(default_factory=list)                   # names of support surfaces
     notes: list[str] = field(default_factory=list)
+    mat: dict = field(default_factory=lambda: {"wall": "plaster_painted", "wainscot": "wainscot_paint",
+                                               "floor": "vinyl_tile_floor", "slab": "concrete_slab"})
 
     def wall_x(self, side: str) -> float:
         return -self.width / 2 if side == "left" else self.width / 2
@@ -77,6 +79,7 @@ def build_corridor(spec: dict, mats: dict, root: bpy.types.Collection) -> ArchCo
     plenum = float(lay.get("plenum", 0.65))
     t = float(arch.get("wall_thickness", 0.18))
     ctx = ArchContext(length=L, width=W, height=H, slab_z=H + plenum, wall_t=t)
+    ctx.mat.update({k: v for k, v in (arch.get("materials") or {}).items() if k in ctx.mat})
     coll = collection("Architecture", root)
     bay = float(lay.get("bay", 3.0))
 
@@ -100,12 +103,27 @@ def build_corridor(spec: dict, mats: dict, root: bpy.types.Collection) -> ArchCo
 
     # ---- floor & structural slab
     fb = MeshBuilder("floor")
-    fb.box((0, L / 2, -0.1), (W + 2 * t, L + 2 * t, 0.2), "vinyl_tile_floor")
+    fb.box((0, L / 2, -0.1), (W + 2 * t, L + 2 * t, 0.2), ctx.mat["floor"])
     floor = fb.to_object(coll, mats)
     tag(floor, role="floor", support=True)
     ctx.floor_objects.append(floor.name)
     sb = MeshBuilder("slab")
-    sb.box((0, L / 2, ctx.slab_z + 0.15), (W + 2 * t, L + 2 * t, 0.3), "concrete_slab")
+    ceiling_kind = arch.get("ceiling", {}).get("kind", "suspended")
+    if ceiling_kind == "exposed":
+        # exposed structural slab in 1 m panels; panels inside collapse zones are missing (roof holes -> god rays)
+        zones = arch.get("ceiling", {}).get("collapse_zones", [])
+        y = 0.0
+        while y < L:
+            x = -W / 2 - t
+            while x < W / 2 + t:
+                cx, cy = x + 0.5, y + 0.5
+                if not any(math.hypot(cx - float(z.get("x", 0)), cy - float(z["y"])) < float(z.get("radius", 1.0))
+                           for z in zones):
+                    sb.box((cx, cy, ctx.slab_z + 0.15), (1.0, 1.0, 0.3), ctx.mat["slab"])
+                x += 1.0
+            y += 1.0
+    else:
+        sb.box((0, L / 2, ctx.slab_z + 0.15), (W + 2 * t, L + 2 * t, 0.3), ctx.mat["slab"])
     tag(sb.to_object(coll, mats), role="slab")
 
     wainscot = arch.get("wainscot", {"height": 1.05})
@@ -129,11 +147,11 @@ def build_corridor(spec: dict, mats: dict, root: bpy.types.Collection) -> ArchCo
                     sx = 1 if side == "right" else -1
                     d = float(pil.get("depth", 0.1))
                     pb.box((sx * (W / 2 - d / 2), y, (H + 0.0) / 2), (d, float(pil.get("width", 0.32)), H),
-                           "plaster_painted", bevel=0.01)
+                           ctx.mat["wall"], bevel=0.01)
                     pb.box((sx * (W / 2 - d / 2 - 0.006), y, wh / 2), (d + 0.012, float(pil.get("width", 0.32)) + 0.012,
-                                                                       wh), "wainscot_paint", bevel=0.008)
+                                                                       wh), ctx.mat["wainscot"], bevel=0.008)
             # bulkhead (downstand beam) across the corridor at every bay line
-            pb.box((0, y, H - 0.09 + 0.15), (W, 0.34, 0.48), "plaster_painted", bevel=0.01)
+            pb.box((0, y, H - 0.09 + 0.15), (W, 0.34, 0.48), ctx.mat["wall"], bevel=0.01)
             ctx.bulkheads.append(y)
             y += every
         tag(pb.to_object(coll, mats), role="structure")
@@ -165,12 +183,12 @@ def _build_side_wall(ctx: ArchContext, side: str, wh: float, mats, coll, arch) -
     wb = MeshBuilder(f"wall_{side}")
     holes = [(o.center - o.width / 2, o.center + o.width / 2) for o in ops]
     for a, b in _segments(L, holes):
-        wb.box((xc, (a + b) / 2, top / 2), (t, b - a, top), "plaster_painted")
+        wb.box((xc, (a + b) / 2, top / 2), (t, b - a, top), ctx.mat["wall"])
     for o in ops:
         y0, y1 = o.center - o.width / 2, o.center + o.width / 2
         if o.sill > 0:
-            wb.box((xc, o.center, o.sill / 2), (t, o.width, o.sill), "plaster_painted")
-        wb.box((xc, o.center, (o.head + top) / 2), (t, o.width, top - o.head), "plaster_painted")
+            wb.box((xc, o.center, o.sill / 2), (t, o.width, o.sill), ctx.mat["wall"])
+        wb.box((xc, o.center, (o.head + top) / 2), (t, o.width, top - o.head), ctx.mat["wall"])
     wall = wb.to_object(coll, mats)
     tag(wall, role="wall", side=side)
 
@@ -178,8 +196,8 @@ def _build_side_wall(ctx: ArchContext, side: str, wh: float, mats, coll, arch) -
     xb = MeshBuilder(f"wainscot_{side}")
     door_holes = [(o.center - o.width / 2 - 0.08, o.center + o.width / 2 + 0.08) for o in ops if o.kind == "door"]
     xi = sx * (W / 2 - 0.006)
-    for a, b in _segments(L, door_holes):
-        xb.box((xi, (a + b) / 2, wh / 2), (0.012, b - a, wh), "wainscot_paint")
+    for a, b in _segments(L, door_holes) if wh > 0 else []:
+        xb.box((xi, (a + b) / 2, wh / 2), (0.012, b - a, wh), ctx.mat["wainscot"])
         xb.box((sx * (W / 2 - 0.016), (a + b) / 2, wh + 0.015), (0.032, b - a, 0.035), "handrail_vinyl", bevel=0.008)
         xb.box((sx * (W / 2 - 0.012), (a + b) / 2, 0.05), (0.024, b - a, 0.1), "rubber_black", bevel=0.006)
     tag(xb.to_object(coll, mats), role="trim", side=side)
@@ -198,12 +216,12 @@ def _build_end_wall(ctx: ArchContext, which: str, wh: float, mats, coll) -> None
     eb = MeshBuilder(f"wall_{which}")
     holes = [(o.center - o.width / 2 + W / 2, o.center + o.width / 2 + W / 2) for o in ops]
     for a, b in _segments(W, holes):
-        eb.box(((a + b) / 2 - W / 2, y, top / 2), (b - a, t, top), "plaster_painted")
+        eb.box(((a + b) / 2 - W / 2, y, top / 2), (b - a, t, top), ctx.mat["wall"])
     for o in ops:
-        eb.box((o.center, y, (o.head + top) / 2), (o.width, t, top - o.head), "plaster_painted")
+        eb.box((o.center, y, (o.head + top) / 2), (o.width, t, top - o.head), ctx.mat["wall"])
     sy = 1 if which == "start" else -1
     for a, b in _segments(W, holes):
-        eb.box(((a + b) / 2 - W / 2, y + sy * (t / 2 + 0.006), wh / 2), (b - a, 0.012, wh), "wainscot_paint")
+        eb.box(((a + b) / 2 - W / 2, y + sy * (t / 2 + 0.006), wh / 2), (b - a, 0.012, wh), ctx.mat["wainscot"])
     tag(eb.to_object(coll, mats), role="wall", side=which)
     for o in ops:
         if o.kind == "double_door":
@@ -349,11 +367,11 @@ def _build_door(ctx: ArchContext, o: Opening, mats, coll) -> None:
     depth = 3.5
     x0 = sx * (W / 2 + t)
     xc = x0 + sx * depth / 2
-    rb.box((xc, o.center, -0.05), (depth, 4.0, 0.1), "vinyl_tile_floor")
+    rb.box((xc, o.center, -0.05), (depth, 4.0, 0.1), ctx.mat["floor"])
     rb.box((xc, o.center, ctx.height + 0.05), (depth, 4.0, 0.1), "ceiling_tile")
-    rb.box((x0 + sx * depth, o.center, ctx.height / 2), (0.1, 4.0, ctx.height), "plaster_painted")
+    rb.box((x0 + sx * depth, o.center, ctx.height / 2), (0.1, 4.0, ctx.height), ctx.mat["wall"])
     for yy in (o.center - 2.0, o.center + 2.0):
-        rb.box((xc, yy, ctx.height / 2), (depth, 0.1, ctx.height), "plaster_painted")
+        rb.box((xc, yy, ctx.height / 2), (depth, 0.1, ctx.height), ctx.mat["wall"])
     tag(rb.to_object(coll, mats), role="room")
 
     # door number plaque (signage image generated by decals module)
@@ -386,11 +404,11 @@ def _build_double_door(ctx: ArchContext, o: Opening, mats, coll) -> None:
     tag(db.to_object(coll, mats), role="door_frame")
     # the zone beyond: a short dark corridor stub so the glass reads depth
     zb = MeshBuilder("beyond")
-    zb.box((0, y + 3.0, -0.05), (ctx.width + 1.5, 6.0, 0.1), "vinyl_tile_floor")
+    zb.box((0, y + 3.0, -0.05), (ctx.width + 1.5, 6.0, 0.1), ctx.mat["floor"])
     zb.box((0, y + 3.0, ctx.height + 0.05), (ctx.width + 1.5, 6.0, 0.1), "ceiling_tile")
     for xx in (-(ctx.width / 2 + 0.8), ctx.width / 2 + 0.8):
-        zb.box((xx, y + 3.0, ctx.height / 2), (0.1, 6.0, ctx.height), "plaster_painted")
-    zb.box((0, y + 6.0, ctx.height / 2), (ctx.width + 1.6, 0.1, ctx.height), "plaster_painted")
+        zb.box((xx, y + 3.0, ctx.height / 2), (0.1, 6.0, ctx.height), ctx.mat["wall"])
+    zb.box((0, y + 6.0, ctx.height / 2), (ctx.width + 1.6, 0.1, ctx.height), ctx.mat["wall"])
     tag(zb.to_object(coll, mats), role="room")
 
 
@@ -399,6 +417,9 @@ def _build_double_door(ctx: ArchContext, o: Opening, mats, coll) -> None:
 def _build_ceiling(ctx: ArchContext, spec: dict, mats, coll, seed: int) -> None:
     cfg = spec.get("architecture", {}).get("ceiling", {})
     rng = seeded(seed, "ceiling")
+    if cfg.get("kind") == "exposed":
+        ctx.collapse_zones = [dict(z) for z in cfg.get("collapse_zones", [])]
+        return
     tile = float(cfg.get("tile", 0.6))
     H, W, L = ctx.height, ctx.width, ctx.length
     ctx.collapse_zones = [dict(z) for z in cfg.get("collapse_zones", [])]

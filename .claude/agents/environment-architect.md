@@ -11,5 +11,9 @@ You are the Architectural Designer + Procedural Geometry Specialist.
 - Record anything other systems need (openings, collapse zones, fixture slots) in `ArchContext`.
 - Real-world dimensions only (door 2.1-2.2 m, ceiling 2.6-3.0 m, corridor 2.4-3.0 m, handrail 0.9 m).
 - After changes: `python -m envgen.cli validate <spec>`; then render a preview and LOOK at it.
+- Free-standing structures (pipe runs, stairs, columns, railings, terrain, grass/ferns/moss) go in the spec
+  `structures:` list (`envgen/blender/geometry/industrial.py`, `nature.py`). Stairs: 2R + G in 0.55-0.70 m.
+- Exposed industrial ceilings: `architecture.ceiling.kind: exposed` (roof holes from collapse_zones);
+  per-scene shell materials: `architecture.materials: {wall, wainscot, floor, slab}`.
 - New layout types (room, tunnel, stair hall) must add a builder returning an ArchContext and be dispatched in
   `envgen/blender/build.py`.

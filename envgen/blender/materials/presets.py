@@ -182,6 +182,27 @@ PRESETS: dict[str, dict] = {
         "base": {"color": (0.5, 0.36, 0.22), "roughness": 0.95, "color_var": 0.2},
         "bump": {"strength": 0.4, "scale": 120.0, "detail": 2.0},
     },
+    # ---------------------------------------------------------------- organic
+    "grass_dry": {
+        "base": {"color": (0.55, 0.47, 0.26), "roughness": 0.7, "color_var": 0.25, "subsurface": 0.25,
+                 "hue_var_color": (0.38, 0.42, 0.18), "hue_var": 0.6},
+    },
+    "fern_leaf": {
+        "base": {"color": (0.2, 0.33, 0.09), "roughness": 0.55, "color_var": 0.2, "subsurface": 0.3,
+                 "hue_var_color": (0.32, 0.36, 0.12), "hue_var": 0.4},
+    },
+    "moss": {
+        "base": {"color": (0.2, 0.27, 0.07), "roughness": 0.95, "color_var": 0.25, "sheen": 0.5,
+                 "hue_var_color": (0.3, 0.32, 0.1), "hue_var": 0.5},
+        "bump": {"strength": 0.5, "scale": 60.0, "detail": 4.0},
+    },
+    "soil": {
+        "projection": "xy", "per_object_variation": False,
+        "base": {"color": (0.24, 0.2, 0.15), "roughness": 0.92, "color_var": 0.2,
+                 "hue_var_color": (0.3, 0.28, 0.22), "hue_var": 0.5},
+        "bump": {"strength": 0.35, "scale": 18.0},
+        "wet": {"amount": 0.15, "scale": 0.5, "roughness": 0.2},
+    },
     "cable_black": {
         "base": {"color": (0.03, 0.03, 0.03), "roughness": 0.5},
     },

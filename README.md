@@ -7,8 +7,11 @@ every iteration against the references.
 It runs **headless** with Blender 5.2 as a Python module (`bpy`) and Cycles path tracing on CPU.
 An exporter writes GLB files plus a manifest for presentation in **Unreal Engine 5**.
 
-The prototype environment is `specs/hospital_corridor.yaml`, an abandoned hospital ward corridor built
-from the reference cluster in `pics/` (see `docs/reference_analysis.md`).
+Environments included:
+- `specs/hospital_corridor.yaml`: the prototype, an abandoned hospital ward corridor built from refs 02/08/09/15/16/17/19.
+- `specs/overgrown_service_hall.yaml`: an overgrown industrial pump hall (refs 04/07/10/00) with an exposed broken roof slab, brick, pipe runs, a steel stair and gallery, ferns and moss.
+
+See `docs/reference_analysis.md` for how the references became construction requirements.
 
 ```
 pics/ (references) ──► analyze-refs ──► references/targets/*.json   (numeric targets: exposure, contrast, palette, haze, VP …)
@@ -99,6 +102,8 @@ envgen/
   blender/util.py         MeshBuilder (bmesh primitives with real bevels, multi-material), colour utils
   blender/geometry/architecture.py  corridor shell, openings, blinds, doors, drop ceiling, plenum services
   blender/geometry/props.py         procedurally modelled props at real-world scale (+ nominal dims registry)
+  blender/geometry/industrial.py    pipe runs (elbows, flanges, supports), staircases (code-compliant), columns, railings
+  blender/geometry/nature.py        fBm/ridged terrain, grass blades, ferns, cushion moss, habitat-based placement
   blender/materials/      layered PBR shader builder + presets (peel, grime, streaks, wet, moss, rust)
   blender/story.py        storytelling beats (collapse, evacuation, paper trail, barricade, …)
   blender/lighting.py     motivated lights (sun + portals, fixture states, practicals), volumetric fog
@@ -135,6 +140,6 @@ To **create a new environment**, see the `generate-environment` skill. In short:
   - The Claude API critic (no API key in the build environment). The code follows the current SDK, and its JSON handling is unit-tested.
   - The Poly Haven/ambientCG downloaders (hosts blocked in the build sandbox; tested against a local mock).
   - The UE5 import script.
-- **Only `corridor` layouts are implemented.** `room` and `tunnel` are accepted by the schema but raise `NotImplementedError`.
+- **Only the `corridor` layout builder is implemented.** It is configurable: suspended or exposed ceiling, per-scene wall/floor/wainscot materials, clerestory windows, and an optional end door. Other layouts (`room`, `tunnel`) raise `NotImplementedError`. Stairs, pipes, columns, railings, terrain and vegetation can be placed in any scene through the spec's `structures:` list.
 - **CPU render time is the bottleneck,** at about 2 min per preview shot on 4 cores. Grade-only QA changes avoid re-renders.
 - **Vanishing-point detection is unreliable** on very dark images, so the composition score is a soft signal.

@@ -119,13 +119,51 @@ def load_spec(path: str | Path) -> dict:
     return spec
 
 
-def save_spec(spec: dict, path: str | Path) -> None:
+def _minimal(value: Any, default: Any) -> Any:
+    """Recursively drop entries equal to their default (keeps saved specs short and reviewable)."""
+    if isinstance(value, dict) and isinstance(default, dict):
+        out = {}
+        for k, v in value.items():
+            if k in default:
+                m = _minimal(v, default[k])
+                if m is not _SAME:
+                    out[k] = m
+            else:
+                out[k] = v
+        return out if out else _SAME
+    return _SAME if value == default else value
+
+
+_SAME = object()
+
+
+def save_spec(spec: dict, path: str | Path, minimal: bool = True) -> None:
+    """Write a spec as YAML. ``minimal`` stores only values that differ from DEFAULTS."""
     clean = {k: v for k, v in spec.items() if not k.startswith("_")}
-    Path(path).write_text(yaml.safe_dump(clean, sort_keys=False, width=110), encoding="utf-8")
+    if minimal:
+        clean = {k: v for k, v in clean.items() if k in ("name", "seed")
+                 or _minimal(v, DEFAULTS.get(k, object())) is not _SAME}
+        clean = {k: (_minimal(v, DEFAULTS[k]) if isinstance(v, dict) and isinstance(DEFAULTS.get(k), dict) else v)
+                 for k, v in clean.items()}
+    Path(path).write_text(yaml.safe_dump(clean, sort_keys=False, width=110, default_flow_style=None),
+                          encoding="utf-8")
+
+
+def _norm(x: Any) -> Any:
+    """Canonical form for hashing: ints and floats that compare equal hash equal (36 == 36.0)."""
+    if isinstance(x, bool) or x is None or isinstance(x, str):
+        return x
+    if isinstance(x, (int, float)):
+        return float(x)
+    if isinstance(x, dict):
+        return {str(k): _norm(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [_norm(v) for v in x]
+    return x
 
 
 def spec_hash(spec: dict) -> str:
-    clean = {k: v for k, v in spec.items() if not k.startswith("_")}
+    clean = _norm({k: v for k, v in spec.items() if not k.startswith("_")})
     return hashlib.sha1(json.dumps(clean, sort_keys=True, default=str).encode()).hexdigest()[:10]
 
 

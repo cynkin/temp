@@ -23,6 +23,18 @@ def test_load_and_hash_deterministic():
     assert get_path(a, "camera.shots.0.name") == "hero"
 
 
+def test_minimal_save_roundtrip():
+    import tempfile
+    from envgen.spec.schema import save_spec
+    a = load_spec(SPEC)
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "s.yaml"
+        save_spec(a, p)
+        b = load_spec(p)
+        assert spec_hash(a) == spec_hash(b), "minimal save must be lossless"
+        assert len(p.read_text().splitlines()) < 220
+
+
 def test_patch_ops_and_bounds():
     s = load_spec(SPEC)
     out = apply_patch(s, [

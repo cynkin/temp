@@ -1,0 +1,120 @@
+# Overgrown industrial service hall — second environment, proves the system generalises beyond hospitals.
+# Reference cluster: 04, 07, 10 (overgrown factory: brick, exposed structure, pipes, moss/ferns, warm haze,
+# light shafts through a broken roof) + 00 / 05 (service-level staircase and railings).
+name: overgrown_service_hall
+seed: 2026
+description: >
+  Pump-house service hall of a closed textile mill. Part of the roof slab has fallen in; rain and light come
+  through, and ferns have taken the wettest corner. A steel stair still climbs to the dead control gallery.
+references: ["04", "07", "10", "00"]
+reference_target: references/targets/overgrown_industrial.json
+
+layout:
+  type: corridor
+  length: 14.0
+  width: 4.2
+  height: 4.6
+  plenum: 0.05
+  bay: 3.5
+
+architecture:
+  wall_thickness: 0.35
+  materials: {wall: brick_raw, wainscot: industrial_green, floor: concrete_floor, slab: concrete_slab}
+  wainscot: {height: 1.25}
+  pilasters: {every: 3.5, depth: 0.18, width: 0.46}
+  windows:
+    side: left
+    width: 2.4
+    sill: 2.75
+    head: 4.15
+    bays: [0, 1, 2, 3]
+    overrides:
+      "0": {blind_state: none, radiator: false}
+      "1": {blind_state: none, radiator: false, broken_panes: [0, 1, 3]}
+      "2": {blind_state: none, radiator: false, broken_panes: [2]}
+      "3": {blind_state: none, radiator: false}
+  doors:
+    list:
+      - {side: right, y: 5.25, width: 1.2, open: 0.25, label: "P-02"}
+  end: {kind: none}
+  ceiling:
+    kind: exposed
+    collapse_zones:                 # roof slab panels gone: light + rain enter here
+      - {y: 6.0, x: -0.4, radius: 1.3}
+  services: {duct: false, pipes: 0, cable_tray: false}
+  exterior_distance: 25.0
+  exterior_floors: 1
+
+materials:
+  industrial_green:                 # lead-era machine-room enamel, heavily flaked
+    projection: wall
+    per_object_variation: false
+    base: {color: [0.30, 0.42, 0.33], roughness: 0.45, color_var: 0.1, hue_var_color: [0.4, 0.4, 0.28], hue_var: 0.5}
+    peel: {amount: 0.55, scale: 1.8, under_color: [0.5, 0.48, 0.42], thickness: 3.0}
+    grime: {amount: 0.8, color: [0.1, 0.09, 0.06], ao_distance: 0.4, floor_height: 0.5}
+    moss: {amount: 0.6, height: 0.7, scale: 2.0}
+  brick_raw: {moss: {amount: 0.45, height: 1.2}, grime: {amount: 0.75}}
+  concrete_floor: {wet: {amount: 0.45}, moss: {amount: 0.5, height: 0.2, scale: 1.5}}
+
+structures:
+  - {kind: pipe_run, name: main_header, radius: 0.13, support: wall, support_every: 1.75,
+     points: [[-1.85, -0.2, 3.35], [-1.85, 8.6, 3.35], [-1.85, 8.6, 0.55], [-1.1, 8.6, 0.55]]}
+  - {kind: pipe_run, name: return_line, radius: 0.07, material: radiator, support: wall,
+     points: [[1.95, -0.2, 3.9], [1.95, 14.2, 3.9]]}
+  - {kind: pipe_run, name: drain, radius: 0.06, material: radiator, support: floor,
+     points: [[-1.1, 8.6, 0.25], [0.6, 8.6, 0.25], [0.6, 3.0, 0.25]]}
+  - {kind: staircase, name: gallery_stair, base: [1.35, 8.2, 0.0], direction_deg: 90, rise: 2.275, width: 1.05,
+     material_kind: steel, railings: left, landing: 1.6}
+  - {kind: railing, name: gallery_rail, points: [[0.8, 11.65, 2.275], [0.8, 13.6, 2.275]]}
+  - {kind: column, name: col_a, base: [-1.55, 12.2, 0.0], height: 4.6}
+
+lighting:
+  view_transform: AgX
+  look: "AgX - Medium High Contrast"
+  world: {color: [0.12, 0.12, 0.11], sky_color: [0.86, 0.85, 0.80], horizon_color: [0.92, 0.9, 0.84], strength: 5.0}
+  sun: {azimuth: 62, elevation: 52, strength: 6.5, kelvin: 4700, angle: 0.5}
+  fixtures: {default: "off"}
+  practicals:
+    - {kind: point, position: [1.9, 4.2, 2.6], kelvin: 2400, energy: 18.0, radius: 0.04}   # surviving caged lamp
+    - {kind: fallen_tube, position: [-0.8, 11.0, 0.02], yaw: 15, length: 1.2, kelvin: 5600, energy: 6.0,
+       emission: 4.0}
+
+atmosphere:
+  enabled: true
+  density: 0.04
+  anisotropy: 0.65
+  color: [0.95, 0.9, 0.8]
+  noise_scale: 0.35
+  noise_amount: 0.6
+
+camera:
+  shots:
+    - {name: hero, position: [-1.3, 0.7, 1.65], target: [0.4, 10.0, 2.2], focal_mm: 20, fstop: 5.6,
+       focus_distance: 6.5}
+    - {name: ferns, position: [0.9, 3.3, 0.9], target: [-0.5, 6.4, 0.3], focal_mm: 28, fstop: 2.8,
+       focus_distance: 3.2}
+
+story:
+  beats:
+    - {kind: collapse, puddles: true}
+    - {kind: overgrowth, density: 1.6}
+    - {kind: wall_dressing, extinguisher: {side: right, y: 2.2}}
+
+post:
+  contrast: 1.04
+  saturation: 0.92
+  lift: [0.006, 0.006, 0.004]
+  gain: [1.02, 1.0, 0.95]
+  shadow_tint: [0.0, 0.004, 0.006]
+  highlight_tint: [0.014, 0.008, -0.006]
+  bloom: {threshold: 0.75, intensity: 0.16, radius: 0.03}
+  vignette: 0.3
+  grain: 0.014
+  chromatic_aberration: 0.001
+
+render:
+  preview: {resolution: [960, 540], samples: 40}
+  final: {resolution: [1600, 900], samples: 96}
+  volume_step_rate: 3.0
+  adaptive_threshold: 0.035
+  clamp_indirect: 6.0

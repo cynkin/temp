@@ -420,8 +420,10 @@ def export_for_unreal(out_dir: Path | str, scene_meta: dict | None = None, *,
             rec.update(_transform_record(mw))
             instances.append(rec)
 
+    # Cycles light portals are sampling helpers, not emitters: exporting them would add real lights in UE
     lights = [_light_record(o) for o in scene.objects
-              if o.type == "LIGHT" and _is_visible(o, view_layer)]
+              if o.type == "LIGHT" and _is_visible(o, view_layer)
+              and not getattr(getattr(o.data, "cycles", None), "is_portal", False)]
     camera = _camera_record(scene.camera, scene) if scene.camera is not None else None
 
     meta_rest = {k: v for k, v in scene_meta.items() if k not in ("name", "atmosphere", "post")}

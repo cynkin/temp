@@ -241,7 +241,40 @@ def _wall_dressing(beat, ctx: ArchContext, mats, coll, fp: Footprints, rng) -> l
     return placed
 
 
+def _overgrowth(beat, ctx: ArchContext, mats, coll, fp: Footprints, rng) -> list[str]:
+    """Plants colonise habitats with light + water + foothold: under roof leaks, below broken windows, wall bases."""
+    from .geometry import nature
+    cand = []
+    for z in ctx.collapse_zones:  # wettest, lit from the hole above
+        for _ in range(6):
+            cand.append((float(z.get("x", 0)) + rng.uniform(-0.6, 0.6), float(z["y"]) + rng.uniform(-0.8, 0.8),
+                         0.0, 3.0))
+    for o in ctx.windows():  # rain through broken panes, sun on the floor below
+        sx = -1 if o.side == "left" else 1
+        w = 2.5 if o.meta.get("broken_panes") else 0.6
+        cand.append((sx * (ctx.width / 2 - 0.12), o.center + rng.uniform(-0.6, 0.6), 0.0, w))
+    for k in range(int(ctx.length)):  # wall-base cracks
+        side = rng.choice((-1, 1))
+        cand.append((side * (ctx.width / 2 - 0.08), k + rng.uniform(0, 1), 0.0, 0.3))
+    density = float(beat.get("density", 1.0))
+    placed = []
+    gp = nature.habitat_positions(rng, cand, int(14 * density))
+    if gp:
+        nature.grass_clumps(coll, mats, "overgrowth_grass", gp, rng, height=(0.1, 0.35))
+        placed.append("overgrowth_grass")
+    fpos = nature.habitat_positions(rng, [c for c in cand if c[3] >= 2.5], int(4 * density))
+    if fpos:
+        nature.ferns(coll, mats, "overgrowth_ferns", fpos, rng)
+        placed.append("overgrowth_ferns")
+    for k, (x, y, z) in enumerate(nature.habitat_positions(rng, [c for c in cand if c[3] >= 2.5],
+                                                           int(5 * density))):
+        nature.moss_patch(coll, mats, f"moss_{k}", (x, y, 0.002), rng.uniform(0.2, 0.5), rng)
+        placed.append(f"moss_{k}")
+    return placed
+
+
 BEATS = {
+    "overgrowth": _overgrowth,
     "collapse": _collapse,
     "evacuation": _evacuation,
     "paper_trail": _paper_trail,

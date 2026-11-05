@@ -78,3 +78,15 @@ generated `stencil` and `hazard_band` decals; presets `drum_paint`, `hessian`, `
 | Still too little light for a 14 × 4.2 × 4.6 m hall | One 1.3 m hole plus high clerestories | Hole radius 1.7 plus a second failure over the gallery; haze 0.04→0.05 |
 | Ferns shot showed only a drain pipe | Camera behind the pipe at 0.9 m | Camera moved left of the pipe, 1.15 m high, 26 mm |
 Open: the sun patch is squared off (the hole is made of whole slab panels) and blows out. Next: `refine --shots hero ferns`.
+
+### Sector B: preview, QA and fixes
+| Run | Score (target underground_tunnel) | Notes |
+|---|---|---|
+| Preview hero | 0.790 | Dark regular mortar grid → `excessive_detail`, `high_contrast`; "SECTOR B" clipped to "ECTOR"; chrome-looking pipes |
+| Preview breach | 0.933 | Composition reads well (sandbags, open toolbox, drums, cold tube) → `docs/renders/sector_b_breach_preview.jpg` |
+| Refine (metric) hero, iter 0 | 0.925 | After the fixes below; target 0.85 reached, so no patch applied |
+
+Fixes: limewash over the mortar (lighter, lower relief), stencil text fitted to its canvas, finer stencil wear, painted
+pipes. **Decal bug (affects every scene):** the wall shader's AO-driven grime ignores alpha, so each decal quad printed a
+dark rectangle on the wall behind it. Decals are now invisible to shadow and diffuse rays (`decals.image_quad`);
+verified with a close-up test render.

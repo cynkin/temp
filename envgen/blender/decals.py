@@ -237,5 +237,9 @@ def image_quad(name: str, image: Path, center, size: tuple[float, float], normal
     mesh.materials.append(make_image_material(f"{name}_mat", str(image), roughness, emission, grime, alpha))
     obj = bpy.data.objects.new(name, mesh)
     coll.objects.link(obj)
+    # a decal is paint, not geometry: it must not occlude the surface it sits on (AO-driven grime ignores alpha
+    # and would print a dark rectangle around the decal) nor cast shadows
+    obj.visible_shadow = False
+    obj.visible_diffuse = False
     tag(obj, role="decal")
     return obj

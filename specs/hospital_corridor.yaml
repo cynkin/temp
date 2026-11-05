@@ -1,0 +1,152 @@
+# Abandoned hospital ward corridor — prototype environment.
+# Derived from reference cluster: 08, 09, 15, 16, 17 (hospital corridor structure, daylight through blinds,
+# collapsed drop ceiling, two-tone walls) + 02, 19 (red emergency light, wet floor, gurney/wheelchair).
+# Every value is a construction requirement extracted from the reference analysis (docs/reference_analysis.md).
+name: ward_b_corridor
+seed: 1337
+description: >
+  Ward B, east wing. Evacuated in a hurry years ago; the roof has been leaking since. Daylight rakes
+  through broken blinds on the courtyard side, the far exit sign still runs on emergency battery.
+references: ["08", "09", "15", "16", "17", "02", "19"]
+reference_target: references/targets/hospital_corridor.json
+
+layout:
+  type: corridor
+  length: 21.0          # 7 structural bays of 3 m
+  width: 2.7            # typical ward corridor clear width (2.4-3.0 m)
+  height: 2.75          # suspended ceiling height
+  plenum: 0.75          # services void above the drop ceiling (exposed where tiles fell)
+  bay: 3.0
+
+architecture:
+  wall_thickness: 0.2
+  wainscot: {height: 1.05}
+  pilasters: {every: 3.0, depth: 0.09, width: 0.3}
+  handrail: {sides: [right], height: 0.9}
+  windows:
+    side: left
+    width: 1.9
+    sill: 1.02
+    head: 2.45
+    bays: [0, 1, 2, 3, 4, 5, 6]
+    overrides:
+      "0": {blind_state: tilted, blind_tilt: 48}
+      "1": {blind_state: broken, broken_panes: [2]}
+      "2": {blind_state: tilted, blind_tilt: 58}
+      "3": {blind_state: raised, broken_panes: [0, 3], radiator: false}
+      "4": {blind_state: tilted, blind_tilt: 40}
+      "5": {blind_state: broken}
+      "6": {blind_state: tilted, blind_tilt: 62}
+  doors:
+    list:
+      - {side: right, y: 4.5, width: 1.15, open: 0.0, label: "B-12"}
+      - {side: right, y: 10.5, width: 1.15, open: 0.35, label: "B-14"}
+      - {side: right, y: 16.5, width: 1.15, open: 0.0, label: "B-16"}
+  end: {kind: double_door, width: 1.8, height: 2.2, open: [14, 0]}
+  ceiling:
+    tile: 0.6
+    random_missing: 0.035
+    fixture_every: 2.4
+    collapse_zones:              # roof leak -> saturated tiles gave way (drives debris, puddles, cables)
+      - {y: 7.4, x: 0.35, radius: 1.5}
+      - {y: 13.6, x: -0.45, radius: 1.05}
+  services: {duct: true, pipes: 2, cable_tray: true}
+  exterior_distance: 18.0
+  exterior_floors: 2
+
+materials:
+  plaster_painted: {streaks: {amount: 0.55}, peel: {amount: 0.3}}
+  vinyl_tile_floor: {wet: {amount: 0.32}}
+
+lighting:
+  view_transform: AgX
+  look: "AgX - Medium High Contrast"
+  exposure: 0.0
+  world:
+    color: [0.10, 0.11, 0.12]        # ambient seen by bounces
+    sky_color: [0.80, 0.83, 0.86]    # overcast sky seen through windows (blows out, as in refs 09/17)
+    horizon_color: [0.88, 0.88, 0.86]
+    strength: 4.5
+  sun: {azimuth: -28, elevation: 27, strength: 6.0, kelvin: 5200, angle: 0.25}
+  fixtures:
+    default: "off"                   # mains power long gone
+    kelvin: 5200
+    energy: 55
+    emission: 7.0
+    states: {"1": dim, "3": "on", "4": hanging, "6": "on"}   # one surviving tube mid-corridor: light/dark depth pools
+  practicals:
+    - {kind: exit_sign, position: [0.0, 20.86, 2.42], color: [1.0, 0.08, 0.05], energy: 6.0, emission: 25.0,
+       direction: [0, -1, -0.5], light_offset: [0, -0.15, -0.05]}
+    - {kind: area, position: [0.0, 22.5, 2.6], color: [1.0, 0.06, 0.04], energy: 45.0, size: [1.4, 1.0],
+       direction: [0, 0, -1]}       # emergency light beyond the doors, glow through the door glass
+    - {kind: fallen_tube, position: [0.95, 17.6, 0.02], yaw: 70, length: 1.2, kelvin: 6200, energy: 9.0,
+       emission: 5.0}
+
+atmosphere:
+  enabled: true
+  density: 0.03
+  anisotropy: 0.55
+  color: [0.92, 0.9, 0.86]
+  noise_scale: 0.45
+  noise_amount: 0.55
+  dust_motes: 0
+
+camera:
+  sensor_mm: 36
+  shots:
+    - {name: hero, position: [0.62, 0.55, 1.6], target: [-0.1, 12.0, 1.32], focal_mm: 19, fstop: 5.6,
+       focus_distance: 7.0}
+    - {name: gurney, position: [-0.85, 6.0, 1.15], target: [0.35, 10.0, 0.75], focal_mm: 28, fstop: 2.8,
+       focus_distance: 3.6}
+    - {name: reverse, position: [-0.3, 19.6, 1.65], target: [0.25, 6.0, 1.2], focal_mm: 21, fstop: 5.6,
+       focus_distance: 6.0}
+
+post:
+  exposure: 0.0
+  contrast: 1.06
+  saturation: 0.88
+  lift: [0.006, 0.008, 0.01]
+  gamma: [1.0, 1.0, 1.0]
+  gain: [1.0, 0.99, 0.96]
+  shadow_tint: [-0.004, 0.004, 0.01]
+  highlight_tint: [0.012, 0.006, -0.008]
+  bloom: {threshold: 0.8, intensity: 0.14, radius: 0.025}
+  vignette: 0.32
+  grain: 0.022
+  chromatic_aberration: 0.0012
+
+story:
+  beats:
+    - kind: evacuation              # patient wheeled out, abandoned mid-route next to the ajar ward door
+      gurney: {y: 9.4, x: 0.35, yaw: 24, sheet: half_off}
+      iv_stand: {toppled: true}
+      wheelchair: {y: 15.2, x: -0.7, yaw: 205}
+    - kind: collapse                # debris, dust, dangling cables & puddles placed under each collapse zone
+      puddles: true
+      caution_sign: {zone: 0, offset: [-0.6, -1.1]}
+    - kind: paper_trail             # toppled records cart; files drift toward the exit (direction of flight)
+      cart: {y: 12.4, x: 0.95, toppled: true}
+      papers: 38
+      drift: [-0.15, 1.0]
+    - kind: waiting_area
+      bench: {side: right, y: 7.45, seats: 3, broken_seat: 2}
+    - kind: barricade               # bed rammed against B-16 from outside: something was kept in
+      door: 2
+    - kind: wall_dressing
+      notice_board: {side: right, y: 13.3}
+      extinguisher: {side: right, y: 5.75}
+      posters: [{side: right, y: 2.3}, {side: right, y: 19.4}]
+
+render:
+  preview: {resolution: [960, 540], samples: 40}
+  final: {resolution: [1920, 1080], samples: 160}
+  max_bounces: 6
+  volume_step_rate: 3.0
+  adaptive_threshold: 0.035
+  clamp_indirect: 6.0
+
+qa:
+  max_iterations: 4
+  target_score: 0.85
+  min_improvement: 0.01
+  patience: 2

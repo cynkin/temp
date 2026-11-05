@@ -1,0 +1,151 @@
+{
+  "luminance": {
+    "mean": 0.27129,
+    "median": 0.20793,
+    "p02": 0.00399,
+    "p50": 0.20793,
+    "p98": 0.83135,
+    "std": 0.21701,
+    "key": "low"
+  },
+  "contrast": {
+    "rms": 0.21701,
+    "dynamic_range": 0.82736,
+    "local_contrast": 0.05426
+  },
+  "color": {
+    "mean_rgb": [
+      0.29514,
+      0.26802,
+      0.23354
+    ],
+    "saturation_mean": 0.1999,
+    "warmth": 0.07142,
+    "tint": 0.00854,
+    "palette": [
+      {
+        "hex": "#110c09",
+        "rgb": [
+          0.0675,
+          0.0482,
+          0.0351
+        ],
+        "weight": 0.264
+      },
+      {
+        "hex": "#2d251e",
+        "rgb": [
+          0.178,
+          0.1461,
+          0.1172
+        ],
+        "weight": 0.2279
+      },
+      {
+        "hex": "#6d6558",
+        "rgb": [
+          0.4262,
+          0.3961,
+          0.3436
+        ],
+        "weight": 0.1692
+      },
+      {
+        "hex": "#494137",
+        "rgb": [
+          0.2865,
+          0.2545,
+          0.2146
+        ],
+        "weight": 0.1618
+      },
+      {
+        "hex": "#968e7f",
+        "rgb": [
+          0.5888,
+          0.5578,
+          0.4988
+        ],
+        "weight": 0.1193
+      },
+      {
+        "hex": "#d1cec5",
+        "rgb": [
+          0.8199,
+          0.8073,
+          0.7727
+        ],
+        "weight": 0.0578
+      }
+    ]
+  },
+  "haze": {
+    "dark_channel_mean": 0.11592,
+    "veil": 0.34828
+  },
+  "detail": {
+    "edge_density": 0.07898,
+    "hf_energy": 0.05089
+  },
+  "structure": {
+    "vanishing_point": [
+      0.7732,
+      0.3054
+    ],
+    "vp_confidence": 0.3333,
+    "dominant_orientations": {
+      "horizontal": 0.3209,
+      "vertical": 0.2243,
+      "oblique": 0.4548
+    }
+  },
+  "spatial": {
+    "luma_grid": [
+      [
+        0.19305,
+        0.45818,
+        0.27357
+      ],
+      [
+        0.18881,
+        0.50634,
+        0.24593
+      ],
+      [
+        0.06923,
+        0.31059,
+        0.19689
+      ]
+    ],
+    "brightest_cell": [
+      1,
+      1
+    ],
+    "center_vs_edge": 2.18376,
+    "top_vs_bottom": 1.49096
+  },
+  "clipping": {
+    "highlights": 0.000958,
+    "shadows": 0.06247
+  },
+  "size": [
+    768,
+    344
+  ],
+  "extra": {
+    "source_size": [
+      1280,
+      720
+    ],
+    "crop_tblr": [
+      71,
+      75,
+      0,
+      0
+    ],
+    "luma_grid_cv": 0.47812,
+    "vp_lines": 62,
+    "vp_oblique_lines": 21,
+    "source": "pics/9vHcIMVgZgiyGOYd1eldgKGua2eznQE_qnnCIRv6wZzoCWvcOj3FI8EXQ7_uhOQCU8eZVI6TNT0qCT_gtuUFbWNQpeAPZipufv65MW5wln0Vux-Q2fy0YkIqAx3Z3fFx50m_cHlzMxqa5BM54YIivPC0t-FyTix6DFchsmwBuIOslhgc9BsQwO8j4rT9Gcnx.jpg"
+  }
+}

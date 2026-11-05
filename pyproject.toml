@@ -1,0 +1,22 @@
+[project]
+name = "envgen"
+version = "0.1.0"
+description = "Autonomous reference-driven 3D environment generation (Blender/Cycles headless, optional Unreal export)"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "bpy==5.2.3",        # Blender as a Python module (Cycles CPU headless)
+  "numpy>=2.0",
+  "pillow>=11",
+  "pyyaml>=6",
+  "scikit-image>=0.24",
+]
+
+[project.optional-dependencies]
+vision = ["anthropic>=0.40"]   # optional vision-LLM critic / reference analyst
+dev = ["pytest>=8"]
+
+[project.scripts]
+envgen = "envgen.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["envgen*"]

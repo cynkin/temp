@@ -57,6 +57,7 @@ architecture:
 materials:
   plaster_painted: {streaks: {amount: 0.55}, peel: {amount: 0.18}}   # localised flaking, not all-over mottling
   vinyl_tile_floor: {wet: {amount: 0.32}}
+  wainscot_paint: {peel: {amount: 0.2, scale: 0.9}}   # final-render critique: fewer, larger chips (was speckled)
 
 lighting:
   view_transform: AgX

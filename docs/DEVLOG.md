@@ -40,4 +40,15 @@
 | QA acted on contradictory issues | Different sub-metrics disagree (too_dark & too_bright) | Severity floor + net-direction resolution |
 
 ### Phase 4–5 — autonomous iteration and validation
-See the "Prototype results" section below (filled in from the actual QA runs).
+### Prototype results (hospital corridor, hero shot, target = refs 02/08/09/15/16/17/19)
+| Run | Score | What changed |
+|---|---|---|
+| Refine round 1, iter 0 | 0.803 | Baseline (too dark, high contrast, crushed blacks) |
+| Refine round 1, iter 1 | 0.945 | Grade-only fixes by metric fixers (exposure, lift, contrast) |
+| Agent critique (qa-artist) | – | Metrics were satisfied, but visual review found murky walls, a hidden ceiling story and mottled paint. Patch: sun elevation 27→16°, sky 4.5→7, plaster peel 0.3→0.18, camera levelled |
+| Refine round 2, iter 0 | 0.960 | target_reached; blind stripes now rake the far wall (the ref 17 look) |
+| Final 1600×900 / 96 spp | 0.954 | docs/renders/hospital_corridor_hero.jpg |
+
+Lesson: metric QA alone converges on "statistically similar" images; the visual critic is needed for
+structural lighting and composition decisions. Remaining issue: speckled wainscot material (fix applied in
+the spec after the final render; not yet re-rendered).

@@ -48,8 +48,8 @@ background.
    far red emergency glow (refs 02/19) a little further.
 4. **Vision critic with a real API key** (`ANTHROPIC_API_KEY`): run `refine --critic anthropic` once and record
    the result in DEVLOG.
-4b. **Sector B tunnel:** `refine specs/sector_b_service_tunnel.yaml --shots hero` (target underground_tunnel.json),
-   critique with `qa-review`, then `render --quality final`. Ideas: a reverse shot from the red end, cobweb masses
+4b. **Sector B tunnel:** final renders are done (hero 0.922, breach 0.929; docs/renders/sector_b_*.jpg). Polish
+   list in DEVLOG (sandbag cloth, spanner shapes, chalkier limewash, lower key). Ideas: a reverse shot from the red end, cobweb masses
    (ref 12), a blast-door variant of the end doors (ref 13: heavy riveted single leaf, red porthole).
 5. **New layouts:** add `room` and `tunnel` builders (ribbed tunnel for refs 12/13, metro service level for 05/14).
 6. **Unreal:** run `export-unreal` and import on a machine with UE 5.3+; verify orientation and light levels.

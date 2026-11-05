@@ -90,3 +90,14 @@ Fixes: limewash over the mortar (lighter, lower relief), stencil text fitted to 
 pipes. **Decal bug (affects every scene):** the wall shader's AO-driven grime ignores alpha, so each decal quad printed a
 dark rectangle on the wall behind it. Decals are now invisible to shadow and diffuse rays (`decals.image_quad`);
 verified with a close-up test render.
+| Final 1600×900 / 96 spp hero | 0.922 | `docs/renders/sector_b_hero.jpg` (decal rectangles gone) |
+| Final 1600×900 / 96 spp breach | 0.929 | `docs/renders/sector_b_breach.jpg` |
+
+Honest critique of the finals (next polish):
+- **Sandbags** read as smooth pillows. Their flat underside box shows as a plank edge. They need cloth wrinkles, a
+  seam, and slump onto the bag below instead of a flat base.
+- **Loose spanners** are flat bars. They need modelled jaw/ring ends.
+- **Brick** reads as clean painted/glazed brick (closer to ref 18's tile than ref 00's chalky limewash). It needs more
+  roughness variation, soot above the lamps, and damp staining at the dado line.
+- The hero is still brighter and lower-contrast than the low-key refs (luma target 0.165). Try fewer lit lamps, or
+  let `refine` run more iterations with a target_score of 0.95.

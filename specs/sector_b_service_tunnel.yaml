@@ -48,6 +48,7 @@ materials:
     streaks: {amount: 0.5, top: 1.2, length: 1.0}
   brick_painted:                      # limewash over brick; flakes expose grey mortar/brick (ref 00)
     base: {color: [0.7, 0.71, 0.67]}
+    pattern: {mortar_color: [0.58, 0.58, 0.55], relief: 1.4}   # limewash bridges the joints
     peel: {amount: 0.24, scale: 1.3, under_color: [0.46, 0.43, 0.39]}
     grime: {amount: 0.8}
   concrete_floor: {base: {color: [0.4, 0.39, 0.37]}, wet: {amount: 0.25}}
@@ -57,7 +58,7 @@ materials:
     rust: {amount: 0.25, scale: 4.0}
 
 structures:
-  - {kind: pipe_run, name: steam_main, radius: 0.09, support: wall, support_every: 1.5,
+  - {kind: pipe_run, name: steam_main, radius: 0.09, material: radiator, support: wall, support_every: 1.5,
      points: [[1.02, -0.2, 2.62], [1.02, 24.2, 2.62]]}
   - {kind: pipe_run, name: condensate, radius: 0.045, material: radiator, support: wall, support_every: 1.5,
      points: [[1.08, -0.2, 2.35], [1.08, 17.4, 2.35], [1.08, 17.4, 0.15], [0.85, 17.4, 0.15]]}
@@ -72,7 +73,7 @@ lighting:
   sun: null
   fixtures: {default: "off"}
   practicals:
-    - {kind: caged_lamp, mount: ceiling, position: [0.0, 4.5, 2.84], kelvin: 4800, energy: 170.0}
+    - {kind: caged_lamp, mount: ceiling, position: [0.0, 4.5, 2.84], kelvin: 4800, energy: 130.0}
     - {kind: caged_lamp, mount: ceiling, position: [0.0, 10.5, 2.84], kelvin: 4400, energy: 150.0}
     - {kind: caged_lamp, mount: ceiling, position: [0.0, 16.5, 2.84], state: "off"}
     - {kind: caged_lamp, mount: ceiling, position: [0.0, 19.5, 2.84], kelvin: 2200, energy: 110.0}   # sodium (ref 12)

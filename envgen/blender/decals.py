@@ -139,7 +139,11 @@ def stencil(text: str, seed: int = 0, color=(225, 222, 210), size=(1024, 512), b
     w, h = size
     alpha = Image.new("L", size, 0)
     d = ImageDraw.Draw(alpha)
-    font = _font(int(h * (0.78 if len(text) <= 2 else 0.5)))
+    fs = int(h * (0.78 if len(text) <= 2 else 0.5))
+    font = _font(fs)
+    while fs > 12 and d.textbbox((0, 0), text, font=font)[2] > w * 0.9:  # fit long labels to the canvas
+        fs = int(fs * 0.9)
+        font = _font(fs)
     d.text((w / 2, h / 2), text, font=font, fill=255, anchor="mm")
     if bridges:  # stencil bridges: thin horizontal gaps through every glyph
         for frac in (0.47, 0.53):
@@ -148,9 +152,10 @@ def stencil(text: str, seed: int = 0, color=(225, 222, 210), size=(1024, 512), b
     alpha = Image.composite(alpha, over, alpha)
     wear = Image.new("L", size, 255)  # scuffed and flaked paint
     wd = ImageDraw.Draw(wear)
-    for _ in range(260):
-        x, y, r = rng.randint(0, w), rng.randint(0, h), rng.randint(2, 14)
-        wd.ellipse((x - r, y - r, x + r, y + r), fill=rng.randint(0, 150))
+    for _ in range(700):  # fine flaking, plus a few larger scuffs
+        x, y = rng.randint(0, w), rng.randint(0, h)
+        r = rng.randint(1, 4) if rng.random() < 0.9 else rng.randint(6, 16)
+        wd.ellipse((x - r, y - r * 0.6, x + r, y + r * 0.6), fill=rng.randint(40, 190))
     wear = wear.filter(ImageFilter.GaussianBlur(2))
     alpha = Image.composite(alpha, Image.new("L", size, 0), wear).point(lambda v: int(v * 0.9))
     img = Image.new("RGBA", size, (*color, 0))

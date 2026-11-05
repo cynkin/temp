@@ -25,7 +25,8 @@ background.
 
 - **Done and committed:** the whole system (see README), plus two environment specs:
   `hospital_corridor` (QA-refined: metric score 0.96 in refine round 2, after an agent critique) and
-  `overgrown_service_hall` (validated; first preview render was queued when the session ended).
+  `overgrown_service_hall` (validated; first preview render was queued when the session ended), and
+  `sector_b_service_tunnel` (underground, refs 00/12/13/18/14; tested with quick renders, see DEVLOG "Session 1b").
 - **Hospital corridor art direction applied:** sun elevation 16° (blind stripes across the far wall), sky
   strength 7, localised plaster peel, camera levelled to show the collapsed ceiling, a surviving mid-corridor
   tube light, grain 0.014.
@@ -47,6 +48,9 @@ background.
    far red emergency glow (refs 02/19) a little further.
 4. **Vision critic with a real API key** (`ANTHROPIC_API_KEY`): run `refine --critic anthropic` once and record
    the result in DEVLOG.
+4b. **Sector B tunnel:** `refine specs/sector_b_service_tunnel.yaml --shots hero` (target underground_tunnel.json),
+   critique with `qa-review`, then `render --quality final`. Ideas: a reverse shot from the red end, cobweb masses
+   (ref 12), a blast-door variant of the end doors (ref 13: heavy riveted single leaf, red porthole).
 5. **New layouts:** add `room` and `tunnel` builders (ribbed tunnel for refs 12/13, metro service level for 05/14).
 6. **Unreal:** run `export-unreal` and import on a machine with UE 5.3+; verify orientation and light levels.
 7. **Docs:** fill in the "Prototype results" section of docs/DEVLOG.md with scores and renders.

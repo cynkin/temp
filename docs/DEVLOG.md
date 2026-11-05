@@ -52,3 +52,21 @@
 Lesson: metric QA alone converges on "statistically similar" images; the visual critic is needed for
 structural lighting and composition decisions. Remaining issue: speckled wainscot material (fix applied in
 the spec after the final render; not yet re-rendered).
+
+## Session 1b — third environment: Sector B service tunnel
+
+Goal: prove the system generalises to a windowless underground space (refs 00/12/13/18, plus 14/05 for props).
+Analysis and construction requirements: `docs/reference_analysis.md` → "Construction requirements extracted
+(Sector B service tunnel)". New target: `references/targets/underground_tunnel.json` (4 refs, luma 0.165).
+
+New building blocks (all reusable by any spec): `caged_lamp` practical with a modelled wire guard; props `toolbox`,
+`oil_drum`, `sandbag` (+ `sandbag_wall`, `floor_cable` helpers); structure `cable_sag`; beats `breach` and `stencils`;
+generated `stencil` and `hazard_band` decals; presets `drum_paint`, `hessian`, `hazard_yellow`.
+
+| Symptom (quick 480×270 test renders) | Root cause | Fix |
+|---|---|---|
+| Everything near-black | 30–40 W point lights at 2–3 m throw | 110–170 W bulbs |
+| Walls read as red brick, "oversaturated" issue (score 0.68) | Preset peel under-colour is red brick | Grey-brown under-colour, less peel, cooler 4400–4800 K lamps |
+| Breach area black under a lit lamp | Lamps on bay lines sat **inside the downstand beams** (z 2.82–3.30) | Lamps mid-bay; cable hooks on rib faces; pipes moved off the pilasters |
+| Sandbag line read as a few loose pillows | One row, two bags per course | Two-row stepped position, one object |
+| Validator interpenetration warning between sandbag rows | AABB check on two angled rows (false positive) | Rows built as one object |
